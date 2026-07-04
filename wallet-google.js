@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const WALLET_API = 'https://walletobjects.googleapis.com/walletobjects/v1';
 
 function issuerId() { return process.env.GOOGLE_ISSUER_ID; }
-function classId()  { return `${issuerId()}.${process.env.GOOGLE_CLASS_ID || 'tatiana_vip'}`; }
+function classId()  { return `${issuerId()}.${process.env.GOOGLE_CLASS_ID || 'loyalty_vip'}`; }
 
 function getAuth() {
   return new GoogleAuth({
@@ -49,35 +49,20 @@ function buildTextModules(stamps, vipExpiry) {
   ];
 }
 
-const LINKS_MODULE = {
-  uris: [
-    {
-      id: 'phone',
-      uri: 'tel:+34671033310',
-      description: '+34 671 03 33 10',
-    },
-    {
-      id: 'email',
-      uri: 'mailto:hola@tatianasilva.es',
-      description: 'hola@tatianasilva.es',
-    },
-    {
-      id: 'address',
-      uri: 'https://maps.google.com/?q=Calle+General+Pardiñas+36+Madrid',
-      description: 'C/ General Pardiñas 36, local izq. · Madrid',
-    },
-    {
-      id: 'instagram',
-      uri: 'https://www.instagram.com/ts.peluqueria/',
-      description: '@ts.peluqueria',
-    },
-    {
-      id: 'web',
-      uri: 'https://tatianasilva.es',
-      description: 'tatianasilva.es',
-    },
-  ],
-};
+function buildLinksModule() {
+  const uris = [];
+  if (process.env.BUSINESS_PHONE)
+    uris.push({ id: 'phone',     uri: `tel:${process.env.BUSINESS_PHONE.replace(/\s/g, '')}`,     description: process.env.BUSINESS_PHONE });
+  if (process.env.BUSINESS_EMAIL)
+    uris.push({ id: 'email',     uri: `mailto:${process.env.BUSINESS_EMAIL}`,                       description: process.env.BUSINESS_EMAIL });
+  if (process.env.BUSINESS_ADDRESS_URL)
+    uris.push({ id: 'address',   uri: process.env.BUSINESS_ADDRESS_URL,                             description: process.env.BUSINESS_ADDRESS_LABEL || process.env.BUSINESS_ADDRESS_URL });
+  if (process.env.BUSINESS_INSTAGRAM)
+    uris.push({ id: 'instagram', uri: `https://www.instagram.com/${process.env.BUSINESS_INSTAGRAM.replace(/^@/, '')}/`, description: `@${process.env.BUSINESS_INSTAGRAM.replace(/^@/, '')}` });
+  if (process.env.BUSINESS_WEBSITE)
+    uris.push({ id: 'web',       uri: process.env.BUSINESS_WEBSITE,                                 description: process.env.BUSINESS_WEBSITE.replace(/^https?:\/\//, '') });
+  return uris.length ? { uris } : undefined;
+}
 
 async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null) {
   const objectId = `${issuerId()}.${uuidv4()}`;
@@ -89,12 +74,12 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
     id:      objectId,
     classId: classId(),
     state:   'ACTIVE',
-    cardTitle:  { defaultValue: { language: 'es', value: process.env.BUSINESS_NAME || 'Tatiana Silva Hair & Beauty' } },
+    cardTitle:  { defaultValue: { language: 'es', value: process.env.BUSINESS_NAME || 'Loyalty Card' } },
     header:     { defaultValue: { language: 'es', value: clientName } },
     subheader:  { defaultValue: { language: 'es', value: 'Tarjeta VIP' } },
     logo: {
       sourceUri: { uri: `${baseUrl}/pass-images/icon@2x.png` },
-      contentDescription: { defaultValue: { language: 'es', value: 'Logo TS' } },
+      contentDescription: { defaultValue: { language: 'es', value: 'Logo' } },
     },
     heroImage: {
       sourceUri: { uri: progressImageUrl(stamps) },
@@ -106,7 +91,7 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
       alternateText: `ID ${cardId}`,
     },
     textModulesData:  buildTextModules(stamps, vipExpiry),
-    linksModuleData:  LINKS_MODULE,
+    linksModuleData:  buildLinksModule(),
     hexBackgroundColor: process.env.BRAND_COLOR || '#000000',
   };
 

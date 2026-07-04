@@ -31,7 +31,7 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
     passTypeIdentifier: PASS_TYPE_ID(),
     teamIdentifier:     TEAM_ID(),
     serialNumber:       serial,
-    organizationName:   process.env.BUSINESS_NAME || 'Tatiana Silva Hair & Beauty',
+    organizationName:   process.env.BUSINESS_NAME || 'Loyalty Card',
     description:        'Tarjeta VIP de fidelidad',
     backgroundColor:    `rgb(${hexToRgb(process.env.BRAND_COLOR || '#000000')})`,
     foregroundColor:    expired ? 'rgb(110,110,110)' : 'rgb(255,255,255)',

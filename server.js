@@ -60,7 +60,7 @@ function validateContact(name, phone, email) {
 }
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const RESEND_FROM = process.env.RESEND_FROM || 'Tatiana Silva Hair & Beauty <vip@tatianasilva.es>';
+const RESEND_FROM = process.env.RESEND_FROM || `${process.env.BUSINESS_NAME || 'Loyalty'} <noreply@example.com>`;
 
 async function sendVipReminder(card) {
   if (!resend) return;
@@ -80,8 +80,8 @@ async function sendVipReminder(card) {
       <table width="100%" style="max-width:480px;background:#0d0c0a;border-radius:4px;overflow:hidden">
         <tr>
           <td style="padding:36px 32px 24px;text-align:center;border-bottom:1px solid rgba(201,169,110,0.2)">
-            <div style="font-size:22px;font-weight:300;color:#ede5d8;letter-spacing:1px">Tatiana Silva</div>
-            <div style="font-size:10px;color:#7a6e60;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Hair & Beauty · Programa VIP</div>
+            <div style="font-size:22px;font-weight:300;color:#ede5d8;letter-spacing:1px">${process.env.BUSINESS_NAME || 'Loyalty'}</div>
+            <div style="font-size:10px;color:#7a6e60;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Programa VIP</div>
           </td>
         </tr>
         <tr>
@@ -106,7 +106,7 @@ async function sendVipReminder(card) {
         <tr>
           <td style="padding:16px 32px 32px;border-top:1px solid rgba(201,169,110,0.1)">
             <p style="margin:0;font-size:11px;color:#4a4038;line-height:1.6;text-align:center">
-              Estás recibiendo este mensaje porque eres clienta VIP de Tatiana Silva Hair &amp; Beauty.
+              Estás recibiendo este mensaje porque eres cliente VIP de ${process.env.BUSINESS_NAME || 'nuestro negocio'}.
             </p>
           </td>
         </tr>
@@ -637,7 +637,7 @@ app.post('/api/admin/test-expire-run', requireAdmin, async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Tatiana Wallet running on http://localhost:${PORT}`);
+  console.log(`Loyalty Wallet running on http://localhost:${PORT}`);
   // Reminders (~60 days before) and expiry marking — once at startup, then every 24h
   setTimeout(() => { checkVipExpiry(); checkExpiredCards(); }, 10_000);
   setInterval(() => { checkVipExpiry(); checkExpiredCards(); }, 24 * 60 * 60 * 1000);
