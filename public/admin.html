@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <title>Admin — Tatiana VIP</title>
+  <link rel="manifest" href="/admin-manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TS Admin">
+  <link rel="apple-touch-icon" href="/pass-images/pwa-icon-192.png">
+  <meta name="theme-color" content="#0a0908">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0a0908;
+      --surface: #131110;
+      --surface2:#1c1a16;
+      --border:  rgba(210,190,160,0.13);
+      --text:    #ede5d8;
+      --text2:   #b0a090;
+      --muted:   #6a5e50;
+      --accent:  #c9a96e;
+      --green:   #5dbf80;
+      --red:     #c96e6e;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; font-size: 14px;
+    }
+
+    /* ── Layout ── */
+    .screen { display: none; min-height: 100vh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 56px;
+      display: flex; align-items: center; gap: 12px;
+      position: sticky; top: 0; z-index: 10;
+    }
+    header::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px; background: linear-gradient(90deg, var(--accent) 0%, transparent 60%);
+    }
+    header { position: sticky; top: 0; z-index: 10; }
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px; font-weight: 400; letter-spacing: 0.5px; flex: 1;
+    }
+    .back-btn {
+      background: none; border: none; color: var(--text2);
+      font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text2); font-size: 11px; font-family: inherit;
+      letter-spacing: 0.6px; text-transform: uppercase;
+      padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    }
+
+    .content { flex: 1; padding: 20px; overflow-y: auto; max-width: 520px; width: 100%; margin: 0 auto; }
+
+    /* ── Forms ── */
+    .field { margin-bottom: 20px; }
+    label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
+    input[type=text], input[type=password], input[type=tel], input[type=date], input[type=number], select, textarea {
+      width: 100%; padding: 12px 14px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 15px; outline: none; font-family: inherit;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: rgba(201,169,110,0.5); }
+    select { cursor: pointer; }
+    textarea { resize: none; height: 80px; }
+
+    /* ── Buttons ── */
+    .btn {
+      width: 100%; padding: 13px 16px; border-radius: 6px; border: none;
+      font-size: 13px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase;
+      cursor: pointer; transition: opacity .15s, transform .1s; font-family: inherit;
+    }
+    .btn:active { opacity: .75; transform: scale(0.99); }
+    .btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+    .btn-primary  { background: var(--accent); color: #0a0908; }
+    .btn-success  { background: var(--green);  color: #0a0908; }
+    .btn-danger   { background: var(--red);    color: #fff; }
+    .btn-ghost         { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+    .btn-outline-accent { background: var(--surface2); color: var(--accent); border: 1px solid rgba(201,169,110,0.4); }
+    .btn-sm       { padding: 7px 14px; font-size: 11px; width: auto; border-radius: 4px; }
+    .btn + .btn   { margin-top: 10px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px; margin-bottom: 12px;
+    }
+    .card-row { display: flex; align-items: center; justify-content: space-between; }
+
+    /* ── Client list item ── */
+    .client-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+      transition: border-color .15s, background .15s;
+      position: relative; overflow: hidden;
+    }
+    .client-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: transparent; transition: background .15s;
+    }
+    .client-item.vip-active::before { background: var(--accent); }
+    .client-item:active { background: var(--surface2); border-color: rgba(201,169,110,0.25); }
+    .client-name  { font-size: 15px; font-weight: 500; }
+    .client-meta  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .stamp-badge  {
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      background: var(--surface2); border-radius: 12px;
+      padding: 3px 10px; white-space: nowrap;
+    }
+    .stamp-badge.full { color: var(--accent); background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.2); }
+
+    /* ── Stamp grid ── */
+    .stamp-grid {
+      display: flex; flex-wrap: wrap;
+      gap: 8px; margin: 20px 0;
+      justify-content: center;
+    }
+    .stamp-dot {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid rgba(210,190,160,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all .25s;
+    }
+    .stamp-dot.filled  {
+      border-color: var(--accent); background: var(--accent); color: #0a0908;
+      box-shadow: 0 0 12px rgba(201,169,110,0.25);
+    }
+    .stamp-dot.pending {
+      border-color: var(--accent); background: rgba(201,169,110,0.15); color: var(--accent);
+    }
+
+    /* ── History ── */
+    .history-item {
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-label { font-size: 13px; }
+    .history-date  { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .badge {
+      font-size: 10px; font-weight: 600; padding: 3px 8px; letter-spacing: 0.8px;
+      text-transform: uppercase; border-radius: 4px;
+    }
+    .badge-alisado { background: rgba(201,169,110,0.15); color: var(--accent); }
+    .badge-otro    { background: rgba(93,191,128,0.12);  color: var(--green); }
+
+    /* ── Prize banner ── */
+    .prize-banner {
+      background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.35);
+      border-radius: 8px; padding: 20px; margin-bottom: 16px; text-align: center;
+    }
+    .prize-banner h2 { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 400; }
+    .prize-banner p  { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    /* ── Enroll link ── */
+    .enroll-link {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px 12px; font-size: 11px; color: var(--muted);
+      word-break: break-all; margin-bottom: 6px; cursor: pointer;
+    }
+    .copy-hint { font-size: 10px; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; }
+
+    /* ── Login ── */
+    #loginScreen { align-items: center; justify-content: center; padding: 40px 24px; }
+    .login-box { width: 100%; max-width: 320px; }
+    .login-monogram {
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 1px solid rgba(201,169,110,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .login-monogram span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 300; color: var(--accent); letter-spacing: 1px;
+    }
+    .login-brand {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 300; letter-spacing: 1px;
+      text-align: center; margin-bottom: 4px;
+    }
+    .login-sub { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 36px; }
+
+    /* ── Search bar ── */
+    .search-bar { position: relative; margin-bottom: 20px; }
+    .search-bar input { padding-left: 40px; border-radius: 8px; }
+    .search-icon {
+      display: block; position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none;
+    }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed; bottom: 28px; right: 20px;
+      width: 54px; height: 54px; border-radius: 50%;
+      background: var(--accent); border: none; color: #0a0908;
+      font-size: 28px; line-height: 1; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(201,169,110,0.35);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 20; transition: transform .15s, box-shadow .15s;
+    }
+    .fab:active { transform: scale(0.93); box-shadow: 0 2px 10px rgba(201,169,110,0.2); }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 96px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 10px 18px; font-size: 13px; z-index: 100;
+      opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    .error-msg { color: var(--red); font-size: 12px; margin-top: 10px; text-align: center; }
+
+    .section-title {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--muted); margin-bottom: 10px; margin-top: 4px;
+    }
+    .flex-gap { display: flex; gap: 8px; }
+    .flex-gap .btn { flex: 1; }
+
+    /* ── VIP expiry card ── */
+    .vip-expiry {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px; margin-bottom: 20px;
+    }
+    .vip-expiry .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px; }
+    .vip-expiry .value { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; }
+    .vip-expiry.expired { border-left-color: var(--red); }
+    .vip-expiry.expired .value { color: var(--red); }
+    .vip-status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(93,191,128,0.5);
+    }
+    .vip-status-dot.expired { background: var(--red); box-shadow: 0 0 8px rgba(201,110,110,0.4); }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box">
+    <div class="login-monogram"><span>TS</span></div>
+    <div class="login-brand">Tatiana Silva</div>
+    <div class="login-sub">Hair & Beauty · Admin</div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••" />
+    </div>
+    <button class="btn btn-primary" onclick="login()">Entrar</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══════════════════════════════════════════════════════════ -->
+<div id="dashScreen" class="screen">
+  <header>
+    <h1>Tatiana VIP</h1>
+    <div class="header-actions">
+      <button class="header-btn" onclick="startScan()">Escanear</button>
+      <button class="header-btn" onclick="logout()">Salir</button>
+    </div>
+  </header>
+  <div class="content">
+    <div class="search-bar">
+      <span class="search-icon">⌕</span>
+      <input type="text" id="searchInput" placeholder="Buscar por nombre o teléfono…"
+             oninput="searchClients(this.value)" />
+    </div>
+    <div id="clientList"></div>
+  </div>
+  <button class="fab" onclick="showScreen('newClientScreen')" title="Nueva clienta">+</button>
+</div>
+
+<!-- ══ QR SCANNER ══════════════════════════════════════════════════════════ -->
+<div id="scanOverlay" style="
+  display:none; position:fixed; inset:0; background:#000; z-index:200;
+  flex-direction:column; align-items:center; justify-content:center;
+">
+  <div style="position:relative; width:100%; max-width:400px;">
+    <video id="scanVideo" autoplay playsinline muted style="width:100%; border-radius:12px; display:block;"></video>
+    <div style="
+      position:absolute; inset:0; border: 3px solid #b08fff;
+      border-radius:12px; pointer-events:none;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.6);
+    "></div>
+  </div>
+  <p style="color:#ccc; font-size:14px; margin-top:20px; text-align:center; padding:0 24px;">
+    Apunta la cámara al QR de la tarjeta VIP
+  </p>
+  <button class="btn btn-ghost btn-sm" onclick="stopScan()" style="margin-top:20px; width:160px; color:#fff;">
+    Cancelar
+  </button>
+</div>
+
+<!-- ══ CLIENT DETAIL ══════════════════════════════════════════════════════ -->
+<div id="clientScreen" class="screen">
+  <header>
+    <button class="back-btn" onclick="showScreen('dashScreen')">‹</button>
+    <h1 id="clientTitle">Clienta</h1>
+  </header>
+  <div class="content">
+    <div id="prizeBanner" class="prize-banner" style="display:none">
+      <h2>🎉 ¡Premio conseguido!</h2>
+      <p>Ha completado 10 sellos. Entrega el premio y pulsa el botón.</p>
+    </div>
+
+    <div class="vip-expiry" id="vipExpiryBox">
+      <div>
+        <div class="label">Validez VIP</div>
+        <div class="value" id="vipExpiryVal">—</div>
+      </div>
+      <div class="vip-status-dot" id="vipStatusDot"></div>
+    </div>
+
+    <div class="stamp-grid" id="stampGrid"></div>
+
+    <div id="prizeBtn" style="display:none; margin-bottom:16px">
+      <button class="btn btn-success" onclick="awardPrize()">✓ Premio entregado — Reiniciar tarjeta</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px">
+      <button class="btn btn-primary" onclick="showAddStamp('alisado')">+ Sello alisado</button>
+      <button class="btn btn-ghost"   onclick="showAddStamp('otro')">+ Sello otro</button>
+    </div>
+
+    <button class="btn btn-ghost" onclick="showReferral()" style="margin-bottom:16px">
+      👥 Vino con tarjeta de amiga
+    </button>
+
+    <div class="section-title">Enlace de inscripción</div>
+    <div class="enroll-link" id="enrollLink" onclick="copyEnrollLink()"></div>
+    <div class="copy-hint">Toca para copiar · <span onclick="sendEnrollWhatsApp()" style="cursor:pointer">Enviar por WhatsApp</span></div>
+
+    <div class="section-title" style="margin-top:16px">Enlace de invitación</div>
+    <div class="enroll-link" id="inviteLink" onclick="copyInviteLink()" style="font-size:12px"></div>
+    <div class="copy-hint">Para compartir con amigas · gana sello cuando hagan alisado</div>
+
+    <div style="margin-top: 20px">
+      <div class="section-title">Historial</div>
+      <div id="stampHistory"></div>
+    </div>
+
+    <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:20px;">
+      <div class="section-title">Editar datos</div>
+      <div id="editZone" style="display:none; margin-top:12px;">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="editName" />
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="editPhone" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="text" id="editEmail" />
+        </div>
+        <div style="display:flex; gap:12px;">
+          <div class="field" style="flex:1">
+            <label>Caducidad VIP</label>
+            <input type="date" id="editVipExpiry" />
+          </div>
+          <div class="field" style="flex:0 0 90px">
+            <label>Sellos</label>
+            <input type="number" id="editStamps" min="0" max="10" />
+          </div>
+        </div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:16px; line-height:1.5;">
+          Si la fecha de caducidad está en el pasado, la tarjeta se marcará como caducada en el wallet automáticamente.
+        </div>
+        <button class="btn btn-outline-accent" onclick="saveEdit()">Guardar cambios</button>
+        <button class="btn btn-ghost" onclick="toggleEditZone(false)" style="margin-top:8px;">Cancelar</button>
+      </div>
+      <button class="btn btn-sm btn-outline-accent" id="editToggleBtn" onclick="toggleEditZone(true)"
+              style="width:auto; padding:8px 16px;">
+        Editar datos
+      </button>
+    </div>
+
+    <div style="margin-top:32px; border-top:1px solid rgba(255,80,80,0.2); padding-top:20px;">
+      <div class="section-title" style="color:var(--red)">⚠️ Zona de peligro</div>
+      <div id="deleteZone" style="display:none; margin-top:12px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">
+          Escribe el nombre de la clienta para confirmar el borrado permanente:
+        </div>
+        <input type="text" id="deleteConfirmInput" placeholder="Nombre exacto…"
+               oninput="checkDeleteConfirm()" style="margin-bottom:10px;" />
+        <button class="btn btn-danger" id="deleteConfirmBtn" disabled onclick="deleteClient()">
+          Borrar permanentemente
+        </button>
+        <button class="btn btn-ghost" onclick="toggleDeleteZone(false)" style="margin-top:8px;">
+          Cancelar
+        </button>
+      </div>
+      <button class="btn btn-sm" id="deleteToggleBtn" onclick="toggleDeleteZone(true)"
+              style="background:transparent; border:1px solid var(--red); color:var(--red); width:auto; padding:8px 16px;">
+        Borrar clienta
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADD STAMP ══════════════════════════════════════════════════════════ -->
+<div id="stampScreen" class="screen">
+  <header>
+    <button class="back-btn" onclick="showScreen('clientScreen')">‹</button>
+    <h1 id="stampTitle">Añadir sello</h1>
+  </header>
+  <div class="content">
+    <div class="card">
+      <div id="stampClientName" style="font-weight:600; margin-bottom:4px"></div>
+      <div id="stampServiceType" style="font-size:13px; color:var(--muted)"></div>
+    </div>
+
+    <div class="field">
+      <label>Notas (opcional)</label>
+      <textarea id="stampNotes" placeholder="Ej: Brushing + corte…"></textarea>
+    </div>
+
+    <button class="btn btn-success" id="confirmStampBtn" onclick="confirmStamp()">
+      ✓ Confirmar sello
+    </button>
+    <div class="error-msg" id="stampError"></div>
+  </div>
+</div>
+
+<!-- ══ REFERRAL ════════════════════════════════════════════════════════════ -->
+<div id="referralScreen" class="screen">
+  <header>
+    <button class="back-btn" onclick="showScreen('clientScreen')">‹</button>
+    <h1>Referido</h1>
+  </header>
+  <div class="content">
+    <div class="card" style="margin-bottom:16px">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:6px">La clienta referidora</div>
+      <div id="referralReferrerName" style="font-weight:600"></div>
+      <div style="font-size:13px; color:var(--muted); margin-top:4px">recibirá 1 sello · La amiga obtiene VIP por 6 meses (0 sellos)</div>
+    </div>
+
+    <div class="field">
+      <label>Nombre de la amiga *</label>
+      <input type="text" id="referralName" placeholder="Nombre completo" />
+    </div>
+    <div class="field">
+      <label>Teléfono de la amiga *</label>
+      <input type="tel" id="referralPhone" placeholder="+34 600 000 000" />
+    </div>
+    <div class="field">
+      <label>Email de la amiga *</label>
+      <input type="email" id="referralEmail" placeholder="email@ejemplo.com" />
+    </div>
+    <div class="field">
+      <label>Servicio que hizo la amiga hoy</label>
+      <select id="referralService">
+        <option value="otro">Otro servicio</option>
+        <option value="alisado">Alisado</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" onclick="confirmReferral()">
+      ✓ Registrar referido
+    </button>
+    <div class="error-msg" id="referralError"></div>
+  </div>
+</div>
+
+<!-- ══ NEW CLIENT ══════════════════════════════════════════════════════════ -->
+<div id="newClientScreen" class="screen">
+  <header>
+    <button class="back-btn" onclick="showScreen('dashScreen')">‹</button>
+    <h1>Nueva clienta VIP</h1>
+  </header>
+  <div class="content">
+    <div class="field">
+      <label>Nombre completo *</label>
+      <input type="text" id="newClientName" placeholder="Nombre y apellidos" />
+    </div>
+    <div class="field">
+      <label>Teléfono</label>
+      <input type="tel" id="newClientPhone" placeholder="+34 600 000 000" />
+    </div>
+    <div class="field">
+      <label>Email *</label>
+      <input type="email" id="newClientEmail" placeholder="email@ejemplo.com" />
+    </div>
+
+    <button class="btn btn-primary" id="createClientBtn" onclick="createClient()">
+      Crear tarjeta VIP
+    </button>
+    <div class="error-msg" id="newClientError"></div>
+
+    <div id="newClientResult" style="display:none; margin-top:16px">
+      <div class="card">
+        <div style="font-weight:600; margin-bottom:8px">✅ Tarjeta creada</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px">Copia el enlace y envíaselo por WhatsApp:</div>
+        <div class="enroll-link" id="newClientLink" onclick="copyNewClientLink()"></div>
+        <div class="copy-hint">Toca para copiar</div>
+        <button class="btn btn-ghost btn-sm" onclick="shareNewClientLink()" style="margin-top:12px; width:100%">
+          📤 Compartir por WhatsApp
+        </button>
+      </div>
+      <button class="btn btn-ghost" onclick="showScreen('dashScreen')" style="margin-top:10px">
+        Volver al inicio
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══════════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let state = {
+  currentCardId:   null,
+  currentClientId: null,
+  currentClientData: null,
+  pendingService:  null,
+  enrollmentUrl:   null,
+  newClientUrl:    null,
+};
+
+// ── Routing ────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, duration = 2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+async function login() {
+  const pass = document.getElementById('loginPass').value;
+  const res  = await fetch('/admin/login', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pass }),
+  });
+  if (res.ok) {
+    showScreen('dashScreen');
+    loadClients('');
+  } else {
+    document.getElementById('loginError').textContent = 'Contraseña incorrecta';
+  }
+}
+
+async function logout() {
+  await fetch('/admin/logout', { method: 'POST' });
+  showScreen('loginScreen');
+}
+
+document.getElementById('loginPass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+// ── Clients ─────────────────────────────────────────────────────────────────
+let searchTimer;
+function searchClients(val) {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadClients(val), 300);
+}
+
+async function loadClients(q = '') {
+  const res   = await fetch(`/api/clients?q=${encodeURIComponent(q)}`);
+  if (res.status === 401) { showScreen('loginScreen'); return; }
+  const list  = await res.json();
+  const el    = document.getElementById('clientList');
+
+  if (!list.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Sin resultados</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(c => {
+    const stamps    = c.stamps ?? 0;
+    const prize     = c.prize_pending;
+    const vipActive = c.vip_expiry && new Date(c.vip_expiry) > new Date();
+    const badgeCls  = prize ? 'stamp-badge full' : 'stamp-badge';
+    const badgeTxt  = prize ? 'PREMIO' : `${stamps} / 10`;
+    const vipCls    = vipActive ? 'client-item vip-active' : 'client-item';
+    return `
+      <div class="${vipCls}" onclick="openClient(${c.card_id})">
+        <div>
+          <div class="client-name">${esc(c.name)}</div>
+          <div class="client-meta">${esc(c.phone || '—')}</div>
+        </div>
+        <div class="${badgeCls}">${badgeTxt}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Client Detail ──────────────────────────────────────────────────────────
+async function openClient(cardId) {
+  if (!cardId) return toast('Sin tarjeta activa');
+  const res  = await fetch(`/api/clients/${cardId}`);
+  if (!res.ok) return toast('Error cargando clienta');
+  const data = await res.json();
+  renderClient(data);
+  showScreen('clientScreen');
+}
+
+async function openClientByCardId(cardId) {
+  const res  = await fetch(`/api/cards/${cardId}`);
+  if (!res.ok) return toast('Tarjeta no encontrada');
+  const card = await res.json();
+  const clientRes = await fetch(`/api/clients/${card.client_id}`);
+  const data = await clientRes.json();
+  renderClient(data);
+  showScreen('clientScreen');
+}
+
+function renderClient(data) {
+  state.currentCardId    = data.card_id;
+  state.currentClientId  = data.id;
+  state.enrollmentUrl    = data.enrollmentUrl;
+  state.currentClientData = data;
+  toggleDeleteZone(false);
+  toggleEditZone(false);
+
+  document.getElementById('clientTitle').textContent = data.name;
+
+  // Prize banner
+  const hasPrize = data.prize_pending === 1;
+  document.getElementById('prizeBanner').style.display = hasPrize ? 'block' : 'none';
+  document.getElementById('prizeBtn').style.display    = hasPrize ? 'block' : 'none';
+
+  // VIP expiry
+  const expiryBox = document.getElementById('vipExpiryBox');
+  const dot       = document.getElementById('vipStatusDot');
+  const stamps    = data.stamps ?? 0;
+  if (data.vip_expiry) {
+    const expDate = new Date(data.vip_expiry);
+    const expired = expDate < new Date();
+    document.getElementById('vipExpiryVal').textContent =
+      expDate.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
+    expiryBox.className   = 'vip-expiry' + (expired ? ' expired' : '');
+    dot.className         = 'vip-status-dot' + (expired ? ' expired' : '');
+  } else {
+    document.getElementById('vipExpiryVal').textContent = 'Sin alisado aún';
+    expiryBox.className = 'vip-expiry expired';
+    dot.className       = 'vip-status-dot expired';
+  }
+
+  // Stamp grid
+  const grid = document.getElementById('stampGrid');
+  grid.innerHTML = Array.from({ length: 10 }, (_, i) => {
+    const cls = i < stamps ? (hasPrize ? 'stamp-dot pending' : 'stamp-dot filled') : 'stamp-dot';
+    const ico = i < stamps ? '✓' : '';
+    return `<div class="${cls}">${ico}</div>`;
+  }).join('');
+
+  // Enrollment link
+  document.getElementById('enrollLink').textContent = data.enrollmentUrl || '—';
+
+  // Invite link (same token, different path)
+  const enrollToken = data.enrollmentUrl?.split('/enroll/')[1];
+  const inviteUrl   = enrollToken ? `${location.origin}/invite/${enrollToken}` : '—';
+  document.getElementById('inviteLink').textContent = inviteUrl;
+
+  // History
+  const hist = document.getElementById('stampHistory');
+  if (!data.history?.length) {
+    hist.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:10px 0">Sin sellos aún</div>`;
+  } else {
+    hist.innerHTML = data.history.map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-label">${h.stamps_before} → ${h.stamps_after} sellos</div>
+          <div class="history-date">${fmtDate(h.created_at)}${h.notes ? ' · ' + esc(h.notes) : ''}</div>
+        </div>
+        <span class="badge badge-${h.service_type}">${h.service_type}</span>
+      </div>`).join('');
+  }
+}
+
+// ── Add Stamp ──────────────────────────────────────────────────────────────
+function showAddStamp(serviceType) {
+  state.pendingService = serviceType;
+  document.getElementById('stampTitle').textContent =
+    serviceType === 'alisado' ? '+ Sello — Alisado' : '+ Sello — Otro servicio';
+  const clientName = document.getElementById('clientTitle').textContent;
+  document.getElementById('stampClientName').textContent  = clientName;
+  document.getElementById('stampServiceType').textContent =
+    serviceType === 'alisado' ? '✨ Alisado (renueva caducidad VIP)' : 'Otro servicio';
+  document.getElementById('stampNotes').value = '';
+  document.getElementById('stampError').textContent = '';
+  showScreen('stampScreen');
+}
+
+async function confirmStamp() {
+  const btn  = document.getElementById('confirmStampBtn');
+  const notes = document.getElementById('stampNotes').value.trim();
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  const res = await fetch(`/api/cards/${state.currentCardId}/stamp`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ service_type: state.pendingService, notes }),
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = '✓ Confirmar sello';
+
+  if (!res.ok) {
+    document.getElementById('stampError').textContent = data.error || 'Error';
+    return;
+  }
+
+  toast(data.prize ? '🎉 ¡10 sellos! Premio conseguido' : '✓ Sello añadido');
+
+  // Reload client
+  const clientRes = await fetch(`/api/clients/${state.currentCardId}`);
+  if (clientRes.ok) renderClient(await clientRes.json());
+  showScreen('clientScreen');
+}
+
+// ── Referral ───────────────────────────────────────────────────────────────
+function showReferral() {
+  document.getElementById('referralReferrerName').textContent =
+    document.getElementById('clientTitle').textContent;
+  document.getElementById('referralName').value = '';
+  document.getElementById('referralPhone').value = '';
+  document.getElementById('referralEmail').value = '';
+  document.getElementById('referralError').textContent = '';
+  showScreen('referralScreen');
+}
+
+async function confirmReferral() {
+  const name    = document.getElementById('referralName').value.trim();
+  const phone   = document.getElementById('referralPhone').value.trim();
+  const email   = document.getElementById('referralEmail').value.trim();
+  const service = document.getElementById('referralService').value;
+  const errEl   = document.getElementById('referralError');
+  if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
+  if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
+  if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
+  if (!email) { errEl.textContent = 'Email requerido'; return; }
+  if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
+
+  const btn = document.querySelector('#referralScreen .btn-primary');
+  btn.disabled = true; btn.textContent = 'Registrando…';
+
+  const res = await fetch(`/api/cards/${state.currentCardId}/referral`, {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name, phone, email, service_type: service }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    document.getElementById('referralError').textContent = data.error || 'Error';
+    btn.disabled = false; btn.textContent = '✓ Registrar referido';
+    return;
+  }
+
+  toast(`✓ Sello a ${document.getElementById('clientTitle').textContent} · Tarjeta creada para ${name}`);
+
+  // Show new client's enrollment link
+  state.newClientUrl = data.enrollmentUrl;
+  alert(`Tarjeta de ${name} creada.\nEnvíale este enlace:\n\n${data.enrollmentUrl}`);
+
+  // Reload referrer
+  const clientRes = await fetch(`/api/clients/${state.currentCardId}`);
+  if (clientRes.ok) renderClient(await clientRes.json());
+  showScreen('clientScreen');
+}
+
+// ── Award Prize ─────────────────────────────────────────────────────────────
+async function awardPrize() {
+  if (!confirm('¿Confirmas que has entregado el premio y quieres reiniciar la tarjeta?')) return;
+  const res = await fetch(`/api/cards/${state.currentCardId}/award-prize`, { method: 'POST' });
+  if (!res.ok) return toast('Error');
+  toast('✓ Premio entregado · Tarjeta reiniciada');
+  const clientRes = await fetch(`/api/clients/${state.currentCardId}`);
+  if (clientRes.ok) renderClient(await clientRes.json());
+}
+
+// ── Phone validation ────────────────────────────────────────────────────────
+function validatePhone(raw) {
+  const clean = raw.replace(/[\s\-().]/g, '');
+  return /^(\+34|0034)?[6789]\d{8}$/.test(clean);
+}
+function validateEmail(raw) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
+}
+
+// ── New Client ──────────────────────────────────────────────────────────────
+async function createClient() {
+  const name  = document.getElementById('newClientName').value.trim();
+  const phone = document.getElementById('newClientPhone').value.trim();
+  const email = document.getElementById('newClientEmail').value.trim();
+  const errEl = document.getElementById('newClientError');
+  if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
+  if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
+  if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
+  if (!email) { errEl.textContent = 'Email requerido'; return; }
+  if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
+
+  const btn = document.getElementById('createClientBtn');
+  btn.disabled = true; btn.textContent = 'Creando…';
+
+  const res  = await fetch('/api/clients', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ name, phone, email }),
+  });
+  const data = await res.json();
+  btn.disabled = false; btn.textContent = 'Crear tarjeta VIP';
+
+  if (!res.ok) { document.getElementById('newClientError').textContent = data.error || 'Error'; return; }
+
+  state.newClientUrl = data.enrollmentUrl;
+  document.getElementById('newClientLink').textContent = data.enrollmentUrl;
+  document.getElementById('newClientResult').style.display = 'block';
+  document.getElementById('newClientError').textContent = '';
+}
+
+function copyNewClientLink() {
+  if (!state.newClientUrl) return;
+  navigator.clipboard.writeText(state.newClientUrl).then(() => toast('✓ Copiado'));
+}
+
+function shareNewClientLink() {
+  if (!state.newClientUrl) return;
+  const name = document.getElementById('newClientName').value.trim();
+  const msg  = `Hola ${name}! 💜 Aquí tienes tu tarjeta VIP de Tatiana Silva Hair & Beauty:\n\n${state.newClientUrl}\n\nGuárdala en tu móvil para acumular sellos y disfrutar tus beneficios ✨`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+}
+
+// ── Enrollment link copy ────────────────────────────────────────────────────
+function copyEnrollLink() {
+  const url = document.getElementById('enrollLink').textContent;
+  if (!url || url === '—') return;
+  navigator.clipboard.writeText(url).then(() => toast('✓ Copiado'));
+}
+function sendEnrollWhatsApp() {
+  const url = document.getElementById('enrollLink').textContent;
+  if (!url || url === '—') return;
+  window.open(`https://wa.me/?text=${encodeURIComponent('Aquí tienes tu enlace para guardar tu tarjeta VIP: ' + url)}`);
+}
+function copyInviteLink() {
+  const url = document.getElementById('inviteLink').textContent;
+  if (!url || url === '—') return;
+  navigator.clipboard.writeText(url).then(() => toast('✓ Enlace de invitación copiado'));
+}
+
+// ── Utils ───────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ── QR Scanner ──────────────────────────────────────────────────────────────
+let scanStream = null;
+let scanInterval = null;
+const scanCanvas = document.createElement('canvas');
+const scanCtx    = scanCanvas.getContext('2d');
+
+async function startScan() {
+  const overlay = document.getElementById('scanOverlay');
+  const video   = document.getElementById('scanVideo');
+
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
+    video.srcObject = scanStream;
+    await video.play();
+    overlay.style.display = 'flex';
+  } catch (e) {
+    toast('No se pudo acceder a la cámara');
+    return;
+  }
+
+  const useNative = 'BarcodeDetector' in window;
+  const detector  = useNative ? new BarcodeDetector({ formats: ['qr_code'] }) : null;
+
+  scanInterval = setInterval(async () => {
+    if (video.readyState < 2) return;
+    try {
+      let val = null;
+
+      if (useNative) {
+        const codes = await detector.detect(video);
+        if (codes.length) val = codes[0].rawValue;
+      } else {
+        scanCanvas.width  = video.videoWidth;
+        scanCanvas.height = video.videoHeight;
+        scanCtx.drawImage(video, 0, 0);
+        const img  = scanCtx.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+        const code = jsQR(img.data, img.width, img.height);
+        if (code) val = code.data;
+      }
+
+      if (val && val.startsWith('card:')) {
+        const cardId = val.split(':')[1];
+        stopScan();
+        await openClient(cardId);
+      }
+    } catch (_) {}
+  }, 300);
+}
+
+function stopScan() {
+  clearInterval(scanInterval);
+  scanInterval = null;
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  document.getElementById('scanOverlay').style.display = 'none';
+}
+
+// ── Delete client ───────────────────────────────────────────────────────────
+function toggleEditZone(show) {
+  document.getElementById('editZone').style.display      = show ? 'block' : 'none';
+  document.getElementById('editToggleBtn').style.display = show ? 'none'  : 'inline-block';
+  if (show) {
+    const c = state.currentClientData;
+    document.getElementById('editName').value      = c?.name  || '';
+    document.getElementById('editPhone').value     = c?.phone || '';
+    document.getElementById('editEmail').value     = c?.email || '';
+    document.getElementById('editVipExpiry').value = c?.vip_expiry || '';
+    document.getElementById('editStamps').value    = c?.stamps ?? 0;
+  }
+}
+
+async function saveEdit() {
+  const name  = document.getElementById('editName').value.trim();
+  const phone = document.getElementById('editPhone').value.trim();
+  const email = document.getElementById('editEmail').value.trim();
+  if (!name)                            { toast('Nombre requerido');                     return; }
+  if (phone && !validatePhone(phone))   { toast('Teléfono no válido (formato español)'); return; }
+  if (email && !validateEmail(email))   { toast('Email no válido');                      return; }
+
+  const btn = document.querySelector('#editZone .btn-outline-accent');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const body = {
+    name,
+    phone,
+    email:      email || null,
+    vip_expiry: document.getElementById('editVipExpiry').value || null,
+    stamps:     parseInt(document.getElementById('editStamps').value, 10),
+  };
+  try {
+    const res = await fetch(`/api/cards/${state.currentCardId}/admin-edit`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) { toast('Sesión expirada — vuelve a iniciar sesión'); showScreen('loginScreen'); return; }
+    if (!res.ok) { const e = await res.json().catch(() => ({})); toast('Error: ' + (e.error || res.status)); return; }
+    const updated = await fetch(`/api/clients/${state.currentCardId}`);
+    renderClient(await updated.json());
+    toast('Datos actualizados ✓');
+  } catch (err) {
+    toast('Error de red: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar cambios';
+  }
+}
+
+function toggleDeleteZone(show) {
+  document.getElementById('deleteZone').style.display      = show ? 'block' : 'none';
+  document.getElementById('deleteToggleBtn').style.display = show ? 'none'  : 'inline-block';
+  document.getElementById('deleteConfirmInput').value = '';
+  document.getElementById('deleteConfirmBtn').disabled = true;
+}
+
+function checkDeleteConfirm() {
+  const typed    = document.getElementById('deleteConfirmInput').value.trim();
+  const expected = document.getElementById('clientTitle').textContent.trim();
+  document.getElementById('deleteConfirmBtn').disabled = (typed !== expected);
+}
+
+async function deleteClient() {
+  const btn = document.getElementById('deleteConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Borrando…';
+
+  const res = await fetch(`/api/clients/${state.currentClientId}`, { method: 'DELETE' });
+  if (!res.ok) { toast('Error al borrar'); btn.disabled = false; btn.textContent = 'Borrar permanentemente'; return; }
+
+  toast('✓ Clienta borrada');
+  showScreen('dashScreen');
+  loadClients('');
+}
+
+// ── Auto-refresh current client ──────────────────────────────────────────────
+setInterval(async () => {
+  const active = document.querySelector('.screen.active')?.id;
+  if (active === 'clientScreen' && state.currentCardId) {
+    const res = await fetch(`/api/clients/${state.currentCardId}`);
+    if (res.ok) renderClient(await res.json());
+  }
+  if (active === 'dashScreen') {
+    const q = document.getElementById('searchInput').value;
+    loadClients(q);
+  }
+}, 30000);
+
+// ── Init ────────────────────────────────────────────────────────────────────
+// Check if already authenticated
+fetch('/api/clients?q=').then(r => {
+  if (r.ok) { showScreen('dashScreen'); loadClients(''); }
+});
+</script>
+</body>
+</html>

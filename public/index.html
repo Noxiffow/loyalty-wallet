@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0f0f1a">
+  <title>Tatiana Silva Hair & Beauty — Tarjeta VIP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f0f1a; color: #f0f0f8;
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 24px;
+    }
+    .card {
+      background: #1a1a2e; border-radius: 20px; padding: 36px 28px;
+      max-width: 380px; width: 100%; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .brand   { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #9090b0; margin-bottom: 8px; }
+    .holder-name {
+      font-size: 18px; font-weight: 600; margin: 16px 0;
+      padding: 12px; background: rgba(255,255,255,0.06);
+      border-radius: 10px; letter-spacing: 0.5px;
+    }
+    .info-box {
+      background: rgba(176,143,255,0.08); border: 1px solid rgba(176,143,255,0.2);
+      border-radius: 12px; padding: 14px; margin-bottom: 24px;
+      font-size: 13px; color: #ccc; line-height: 1.6; text-align: left;
+    }
+    .info-box strong { color: #fff; display: block; margin-bottom: 4px; font-size: 14px; }
+
+    .btn-google, .btn-apple {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 16px; border-radius: 12px; border: none;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      transition: opacity .2s, transform .1s; margin-bottom: 10px;
+    }
+    .btn-google         { background: #fff; color: #1a1a2e; }
+    .btn-apple          { background: #000; color: #fff; border: 1px solid #333; }
+    .btn-google:active,
+    .btn-apple:active   { transform: scale(0.98); opacity: .85; }
+    .btn-google:disabled,
+    .btn-apple:disabled { opacity: .5; cursor: not-allowed; }
+
+    .error   { color: #ff6b6b; font-size: 13px; margin-top: 12px; display: none; }
+    .success { color: #4cd97e; font-size: 13px; margin-top: 12px; display: none; }
+
+    .inapp-banner {
+      display: none; border: 1px solid rgba(176,143,255,0.4);
+      background: rgba(176,143,255,0.08); color: #f0f0f8;
+      padding: 12px 14px; margin-bottom: 18px; font-size: 12px;
+      line-height: 1.6; text-align: left; border-radius: 10px;
+    }
+    .inapp-banner strong { color: #b08fff; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="inapp-banner" id="inappBanner">
+      Estás dentro de una app (WhatsApp/Instagram). Para guardar tu tarjeta en el Wallet, toca
+      <strong>⋮ o el icono de compartir</strong> arriba y elige <strong>«Abrir en el navegador»</strong> (Safari o Chrome).
+    </div>
+    <div class="brand">Tatiana Silva</div>
+    <div class="subtitle">Hair & Beauty · Tarjeta VIP</div>
+
+    <div class="holder-name" id="holderName">Cargando…</div>
+
+    <div class="info-box">
+      <strong>Tu tarjeta VIP incluye</strong>
+      Precio especial en alisados · Descuento en servicios (excluye productos y suplementos).<br><br>
+      Por cada visita acumulas 1 sello. Al llegar a 10 sellos, ¡ganas un premio!
+    </div>
+
+    <button class="btn-google" id="btnGoogle" onclick="savePass('google')" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285F4"/>
+        <path d="M17.6 12.2c0-.4 0-.8-.1-1.2H12v2.3h3.1c-.1.7-.6 1.8-1.6 2.5v2h2.6c1.5-1.4 2.4-3.5 2.4-5.6z" fill="#4285F4"/>
+        <path d="M12 18c1.6 0 3-.5 4-1.4l-2.6-2c-.7.5-1.5.7-2.4.7-1.8 0-3.4-1.2-3.9-2.9H5.4v2.1C6.5 16.8 9.1 18 12 18z" fill="#34A853"/>
+        <path d="M8.1 12.4c-.1-.4-.2-.8-.2-1.2s.1-.8.2-1.2V7.9H5.4C4.5 9.1 4 10.5 4 12s.5 2.9 1.4 4.1l2.7-1.7z" fill="#FBBC04"/>
+        <path d="M12 6.6c1 0 1.9.3 2.6 1l2.3-2.3C15.5 4.2 13.9 3.5 12 3.5c-2.9 0-5.5 1.6-6.6 4l2.7 2.1C8.6 7.8 10.2 6.6 12 6.6z" fill="#EA4335"/>
+      </svg>
+      Guardar en Google Wallet
+    </button>
+
+    <button class="btn-apple" id="btnApple" onclick="savePass('apple')" style="display:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+      </svg>
+      Agregar a Apple Wallet
+    </button>
+
+    <p class="error"   id="errorMsg"></p>
+    <p class="success" id="successMsg"></p>
+  </div>
+
+  <script>
+    const token = location.pathname.split('/enroll/')[1] || null;
+
+    if (!token) {
+      document.getElementById('holderName').textContent = 'Enlace no válido';
+      document.querySelector('.info-box').innerHTML =
+        '<strong>Este enlace no incluye tu tarjeta</strong>Pide a Tatiana Silva Hair & Beauty que te reenvíe tu enlace personal, o regístrate de nuevo en /join.';
+    }
+
+    // Load holder name
+    if (token) fetch(`/api/cards-by-token/${token}`)
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('holderName').textContent = data.client_name || '—';
+      })
+      .catch(() => {
+        document.getElementById('holderName').textContent = 'Tarjeta VIP';
+      });
+
+    // Show platform button
+    const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    function isInAppBrowser() {
+      const ua = navigator.userAgent || '';
+      return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|Twitter|TikTok|musical_ly|Snapchat/i.test(ua)
+        || (isAndroid && /; wv\)/.test(ua));
+    }
+    // En iOS, solo Safari entrega los .pkpass a Apple Wallet de forma fiable
+    function isNonSafariIOS() {
+      const ua = navigator.userAgent || '';
+      return isIOS && /CriOS|FxiOS|OPiOS|OPT\/|EdgiOS|GSA\/|DuckDuckGo|YaBrowser/i.test(ua);
+    }
+    const bannerEl = document.getElementById('inappBanner');
+    if (isInAppBrowser()) {
+      bannerEl.style.display = 'block';
+    } else if (isNonSafariIOS()) {
+      bannerEl.innerHTML = 'Estás usando un navegador que no es Safari. En iPhone, <strong>Apple Wallet solo funciona desde Safari</strong>. Copia este enlace y ábrelo ahí.';
+      bannerEl.style.display = 'block';
+    }
+
+    if (token) {
+      if (isIOS)          document.getElementById('btnApple').style.display  = 'flex';
+      else if (isAndroid) document.getElementById('btnGoogle').style.display = 'flex';
+      else {
+        document.getElementById('btnApple').style.display  = 'flex';
+        document.getElementById('btnGoogle').style.display = 'flex';
+      }
+    }
+
+    function savePass(platform) {
+      const btn      = document.getElementById(platform === 'google' ? 'btnGoogle' : 'btnApple');
+      const errorEl  = document.getElementById('errorMsg');
+      const succEl   = document.getElementById('successMsg');
+      const original = btn.innerHTML;
+      errorEl.style.display = 'none';
+      succEl.style.display  = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Preparando…';
+
+      // Red de seguridad: si seguimos en esta página pasados unos segundos,
+      // la navegación no funcionó (bloqueador, etc.) — restaurar el botón.
+      const resetTimer = setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        errorEl.textContent = 'No se pudo abrir el Wallet. Si usas un bloqueador de anuncios o VPN del navegador, desactívalo e inténtalo de nuevo.';
+        errorEl.style.display = 'block';
+      }, 4000);
+      window.addEventListener('pagehide', () => clearTimeout(resetTimer), { once: true });
+
+      try {
+        const url = platform === 'google' ? `/wallet/google/${token}` : `/wallet/apple/${token}`;
+        window.location.href = url;
+      } catch (e) {
+        clearTimeout(resetTimer);
+        btn.disabled = false;
+        btn.innerHTML = original;
+        errorEl.textContent = 'Ocurrió un error. Inténtalo de nuevo.';
+        errorEl.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

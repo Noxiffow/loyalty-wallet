@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0c0a">
+  <title>Tatiana Silva Hair & Beauty — Invitación VIP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0d0c0a; color: #ede5d8;
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 32px 24px;
+    }
+
+    .wrap { width: 100%; max-width: 360px; }
+
+    .brand { text-align: center; margin-bottom: 32px; }
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px; font-weight: 300; letter-spacing: 1px;
+    }
+    .brand-sub {
+      font-size: 10px; color: #7a6e60; text-transform: uppercase;
+      letter-spacing: 2px; margin-top: 4px;
+    }
+    .brand-divider {
+      width: 32px; height: 1px; background: rgba(201,169,110,0.4);
+      margin: 16px auto 0;
+    }
+
+    .invite-banner {
+      border: 1px solid rgba(201,169,110,0.25);
+      background: rgba(201,169,110,0.05);
+      padding: 14px 18px; margin-bottom: 28px; text-align: center;
+    }
+    .invite-label {
+      font-size: 10px; color: #7a6e60; text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 6px;
+    }
+    .invite-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 400; color: #c9a96e;
+    }
+    .invite-note {
+      font-size: 11px; color: #7a6e60; margin-top: 6px; line-height: 1.5;
+    }
+
+    .perks {
+      border: 1px solid rgba(201,169,110,0.15);
+      padding: 16px 18px; margin-bottom: 28px;
+    }
+    .perks-title {
+      font-size: 10px; color: #7a6e60; text-transform: uppercase;
+      letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+    .perk {
+      font-size: 13px; color: #b8a896; line-height: 1.6;
+      padding: 3px 0; display: flex; align-items: flex-start; gap: 8px;
+    }
+    .perk::before { content: '—'; color: rgba(201,169,110,0.5); flex-shrink: 0; }
+
+    .field { margin-bottom: 20px; }
+    label {
+      display: block; font-size: 10px; color: #7a6e60;
+      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
+    }
+    input {
+      width: 100%; padding: 12px 0;
+      background: transparent; border: none; border-bottom: 1px solid rgba(210,190,160,0.15);
+      color: #ede5d8; font-size: 15px; font-family: inherit; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #c9a96e; }
+    input::placeholder { color: #4a4038; }
+
+    .btn-primary {
+      width: 100%; padding: 14px; border: none; border-radius: 2px;
+      background: #c9a96e; color: #0d0c0a;
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity .15s; margin-top: 8px;
+    }
+    .btn-primary:active { opacity: .75; }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-wallet {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 14px; border-radius: 2px;
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity .15s; margin-bottom: 10px; border: none;
+    }
+    .btn-wallet:active { opacity: .75; }
+    .btn-wallet:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-google { background: #fff; color: #1a1a2e; }
+    .btn-apple  { background: #111; color: #fff; border: 1px solid #333 !important; }
+
+    .error { color: #c96e6e; font-size: 12px; margin-top: 12px; text-align: center; letter-spacing: 0.3px; display: none; }
+
+    .success-box { display: none; text-align: center; }
+    .success-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px; font-weight: 300; margin-bottom: 6px;
+    }
+    .success-msg { font-size: 12px; color: #7a6e60; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 28px; }
+
+    .divider { text-align: center; font-size: 11px; color: #4a4038; margin: 16px 0; letter-spacing: 1px; }
+    .fallback-note { font-size: 11px; color: #5a5048; text-align: center; letter-spacing: 0.3px; line-height: 1.6; }
+
+    .inapp-banner {
+      display: none; border: 1px solid rgba(201,169,110,0.4);
+      background: rgba(201,169,110,0.08); color: #ede5d8;
+      padding: 12px 14px; margin-bottom: 24px; font-size: 12px;
+      line-height: 1.6; text-align: center;
+    }
+    .inapp-banner strong { color: #c9a96e; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="inapp-banner" id="inappBanner">
+      Estás dentro de una app (WhatsApp/Instagram). Para guardar tu tarjeta en el Wallet, toca
+      <strong>⋮ o el icono de compartir</strong> arriba y elige <strong>«Abrir en el navegador»</strong> (Safari o Chrome).
+    </div>
+    <div class="brand">
+      <div class="brand-name">Tatiana Silva</div>
+      <div class="brand-sub">Hair & Beauty · Programa VIP</div>
+      <div class="brand-divider"></div>
+    </div>
+
+    <div id="formBox">
+      <div class="invite-banner">
+        <div class="invite-label">Te invita</div>
+        <div class="invite-name" id="referrerName">…</div>
+        <div class="invite-note">Cuando hagas tu primer alisado, ella gana un sello.</div>
+      </div>
+
+      <div class="perks">
+        <div class="perks-title">Tu tarjeta VIP incluye</div>
+        <div class="perk">Precio especial en alisados</div>
+        <div class="perk">Descuento en todos los servicios</div>
+        <div class="perk">Premio a los 10 sellos</div>
+      </div>
+
+      <div class="field">
+        <label>Tu nombre *</label>
+        <input type="text" id="nameInput" placeholder="Nombre y apellidos" autocomplete="name" />
+      </div>
+      <div class="field">
+        <label>Teléfono *</label>
+        <input type="tel" id="phoneInput" placeholder="+34 600 000 000" autocomplete="tel" />
+      </div>
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="emailInput" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+
+      <button class="btn-primary" id="joinBtn" onclick="joinVip()">
+        Obtener mi tarjeta VIP
+      </button>
+      <p class="error" id="errorMsg"></p>
+    </div>
+
+    <div class="success-box" id="successBox">
+      <div class="success-name" id="successName"></div>
+      <div class="success-msg">Bienvenida al programa VIP</div>
+
+      <button class="btn-wallet btn-google" id="btnGoogle" onclick="saveGoogle()" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#4285F4"/>
+          <path d="M17.6 12.2c0-.4 0-.8-.1-1.2H12v2.3h3.1c-.1.7-.6 1.8-1.6 2.5v2h2.6c1.5-1.4 2.4-3.5 2.4-5.6z" fill="#4285F4"/>
+          <path d="M12 18c1.6 0 3-.5 4-1.4l-2.6-2c-.7.5-1.5.7-2.4.7-1.8 0-3.4-1.2-3.9-2.9H5.4v2.1C6.5 16.8 9.1 18 12 18z" fill="#34A853"/>
+          <path d="M8.1 12.4c-.1-.4-.2-.8-.2-1.2s.1-.8.2-1.2V7.9H5.4C4.5 9.1 4 10.5 4 12s.5 2.9 1.4 4.1l2.7-1.7z" fill="#FBBC04"/>
+          <path d="M12 6.6c1 0 1.9.3 2.6 1l2.3-2.3C15.5 4.2 13.9 3.5 12 3.5c-2.9 0-5.5 1.6-6.6 4l2.7 2.1C8.6 7.8 10.2 6.6 12 6.6z" fill="#EA4335"/>
+        </svg>
+        Guardar en Google Wallet
+      </button>
+
+      <button class="btn-wallet btn-apple" id="btnApple" onclick="saveApple()" style="display:none">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Agregar a Apple Wallet
+      </button>
+
+      <div class="divider">·</div>
+      <div class="fallback-note">Muestra esta pantalla en caja si no puedes<br>guardar la tarjeta en este momento.</div>
+    </div>
+  </div>
+
+  <script>
+    const inviteToken = location.pathname.split('/invite/')[1];
+    let enrollToken   = null;
+    const isIOS       = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid   = /Android/.test(navigator.userAgent);
+
+    function isInAppBrowser() {
+      const ua = navigator.userAgent || '';
+      return /FBAN|FBAV|Instagram|WhatsApp|Line\/|MicroMessenger|Twitter|TikTok|musical_ly|Snapchat/i.test(ua)
+        || (isAndroid && /; wv\)/.test(ua));
+    }
+    function isNonSafariIOS() {
+      const ua = navigator.userAgent || '';
+      return isIOS && /CriOS|FxiOS|OPiOS|OPT\/|EdgiOS|GSA\/|DuckDuckGo|YaBrowser/i.test(ua);
+    }
+    const bannerEl = document.getElementById('inappBanner');
+    if (isInAppBrowser()) {
+      bannerEl.style.display = 'block';
+    } else if (isNonSafariIOS()) {
+      bannerEl.innerHTML = 'Estás usando un navegador que no es Safari. En iPhone, <strong>Apple Wallet solo funciona desde Safari</strong>. Copia este enlace y ábrelo ahí.';
+      bannerEl.style.display = 'block';
+    }
+
+    // Load referrer name
+    fetch(`/api/invite-info/${inviteToken}`)
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('referrerName').textContent = data.referrerName || '—';
+      })
+      .catch(() => {
+        document.getElementById('referrerName').textContent = '—';
+      });
+
+    function validatePhone(raw) {
+      const clean = raw.replace(/[\s\-().]/g, '');
+      return /^(\+34|0034)?[6789]\d{8}$/.test(clean);
+    }
+    function validateEmail(raw) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
+    }
+
+    async function joinVip() {
+      const name  = document.getElementById('nameInput').value.trim();
+      const phone = document.getElementById('phoneInput').value.trim();
+      const email = document.getElementById('emailInput').value.trim();
+      const errEl = document.getElementById('errorMsg');
+      errEl.style.display = 'none';
+
+      if (!name) {
+        errEl.textContent = 'Por favor escribe tu nombre.';
+        errEl.style.display = 'block'; return;
+      }
+      if (!phone || !validatePhone(phone)) {
+        errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)';
+        errEl.style.display = 'block'; return;
+      }
+      if (!email || !validateEmail(email)) {
+        errEl.textContent = 'Email no válido';
+        errEl.style.display = 'block'; return;
+      }
+
+      const btn = document.getElementById('joinBtn');
+      btn.disabled = true; btn.textContent = 'Creando tu tarjeta…';
+
+      try {
+        const res  = await fetch(`/api/invite/${inviteToken}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, email }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error');
+
+        enrollToken = data.token;
+        document.getElementById('successName').textContent = `Hola, ${name.split(' ')[0]}`;
+        document.getElementById('formBox').style.display    = 'none';
+        document.getElementById('successBox').style.display = 'block';
+
+        if (isIOS)          document.getElementById('btnApple').style.display  = 'flex';
+        else if (isAndroid) document.getElementById('btnGoogle').style.display = 'flex';
+        else {
+          document.getElementById('btnApple').style.display  = 'flex';
+          document.getElementById('btnGoogle').style.display = 'flex';
+        }
+      } catch (e) {
+        errEl.textContent = e.message || 'Ocurrió un error. Inténtalo de nuevo.';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Obtener mi tarjeta VIP';
+      }
+    }
+
+    function saveGoogle() {
+      if (enrollToken) window.location.href = `/wallet/google/${enrollToken}`;
+    }
+
+    function saveApple() {
+      if (!enrollToken) return;
+      window.location.href = `/wallet/apple/${enrollToken}`;
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') joinVip(); });
+  </script>
+</body>
+</html>

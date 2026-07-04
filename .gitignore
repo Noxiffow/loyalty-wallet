@@ -1,0 +1,10 @@
+node_modules/
+.env
+loyalty.db
+loyalty.db-shm
+loyalty.db-wal
+certs/*.pem
+certs/*.p12
+certs/*.key
+.DS_Store
+.claude/
