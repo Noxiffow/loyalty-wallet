@@ -204,7 +204,7 @@ const q = {
   getCardsUpdatedSince: db.prepare(
     `SELECT ca.apple_serial FROM cards ca
      JOIN apple_registrations ar ON ar.card_id = ca.id
-     WHERE ar.device_id = ? AND ca.updated_at > ?`
+     WHERE ar.device_id = ? AND datetime(ca.updated_at) > datetime(?)`
   ),
 };
 
