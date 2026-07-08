@@ -684,9 +684,12 @@ function renderClient(data) {
   // Enrollment link
   document.getElementById('enrollLink').textContent = data.enrollmentUrl || '—';
 
-  // Invite link (same token, different path)
+  // Invite link (same token, different path) — usa el mismo origen que enrollmentUrl
+  // (BASE_URL del servidor), no location.origin, para no depender de qué dominio
+  // se use para abrir /admin.
   const enrollToken = data.enrollmentUrl?.split('/enroll/')[1];
-  const inviteUrl   = enrollToken ? `${location.origin}/invite/${enrollToken}` : '—';
+  const origin       = data.enrollmentUrl ? new URL(data.enrollmentUrl).origin : location.origin;
+  const inviteUrl    = enrollToken ? `${origin}/invite/${enrollToken}` : '—';
   document.getElementById('inviteLink').textContent = inviteUrl;
 
   // History
