@@ -424,6 +424,13 @@ app.get('/invite/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'invite.html'));
 });
 
+// Página que ve la propia titular desde su Wallet: copia su enlace, no lo abre
+app.get('/share/:token', (req, res) => {
+  const referrer = q.getReferrerByToken.get(req.params.token);
+  if (!referrer) return res.status(404).send('Enlace no válido');
+  res.sendFile(path.join(__dirname, 'public', 'share-invite.html'));
+});
+
 app.get('/api/invite-info/:token', (req, res) => {
   const referrer = q.getReferrerByToken.get(req.params.token);
   if (!referrer) return res.status(404).json({ error: 'No encontrado' });

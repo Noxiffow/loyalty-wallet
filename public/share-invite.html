@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0c0a">
+  <title>Tatiana Silva Hair & Beauty — Invita y gana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #0d0c0a; color: #ede5d8;
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 32px 24px;
+    }
+
+    .wrap { width: 100%; max-width: 360px; text-align: center; }
+
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px; font-weight: 300; letter-spacing: 1px;
+    }
+    .brand-sub {
+      font-size: 10px; color: #7a6e60; text-transform: uppercase;
+      letter-spacing: 2px; margin-top: 4px;
+    }
+    .brand-divider {
+      width: 32px; height: 1px; background: rgba(201,169,110,0.4);
+      margin: 16px auto 28px;
+    }
+
+    .icon { font-size: 40px; margin-bottom: 12px; }
+
+    .status {
+      font-size: 15px; color: #ede5d8; margin-bottom: 6px; font-weight: 500;
+    }
+    .status-note {
+      font-size: 12px; color: #7a6e60; line-height: 1.6; margin-bottom: 24px;
+    }
+
+    .link-box {
+      border: 1px solid rgba(201,169,110,0.25);
+      background: rgba(201,169,110,0.05);
+      padding: 14px 16px; margin-bottom: 24px;
+      font-size: 13px; color: #c9a96e; word-break: break-all;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      width: 100%; padding: 14px; border: none; border-radius: 2px;
+      background: #c9a96e; color: #0d0c0a;
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity .15s; margin-bottom: 10px;
+    }
+    .btn-primary:active { opacity: .75; }
+
+    .btn-secondary {
+      width: 100%; padding: 14px; border: 1px solid rgba(201,169,110,0.3);
+      background: transparent; color: #ede5d8;
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity .15s;
+    }
+    .btn-secondary:active { opacity: .6; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand-name">Tatiana Silva</div>
+    <div class="brand-sub">Hair & Beauty · Invita y gana</div>
+    <div class="brand-divider"></div>
+
+    <div class="icon">🎁</div>
+    <div class="status" id="statusMsg">Preparando tu enlace…</div>
+    <div class="status-note" id="statusNote">Cuando tu amiga haga su primer alisado, tú ganas 1 sello.</div>
+
+    <div class="link-box" id="linkBox" onclick="copyLink()">…</div>
+
+    <button class="btn-primary" id="shareBtn" onclick="shareLink()" style="display:none">
+      Compartir enlace
+    </button>
+    <button class="btn-secondary" onclick="copyLink()">
+      Copiar enlace
+    </button>
+  </div>
+
+  <script>
+    const token     = location.pathname.split('/share/')[1];
+    const inviteUrl = token ? `${location.origin}/invite/${token}` : null;
+
+    document.getElementById('linkBox').textContent = inviteUrl || 'Enlace no válido';
+
+    if (inviteUrl) {
+      fetch(`/api/invite-info/${token}`)
+        .then(r => r.json())
+        .then(data => {
+          const firstName = (data.referrerName || '').split(' ')[0];
+          document.getElementById('statusMsg').textContent = firstName
+            ? `Tu enlace, ${firstName}`
+            : 'Tu enlace de invitación';
+        })
+        .catch(() => {});
+
+      if (navigator.share) {
+        document.getElementById('shareBtn').style.display = 'block';
+      }
+
+      // Copia automática al abrir — para eso sirve este enlace desde el Wallet
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(inviteUrl)
+          .then(() => showCopied())
+          .catch(() => {});
+      }
+    } else {
+      document.getElementById('statusMsg').textContent = 'Enlace no válido';
+      document.getElementById('statusNote').textContent = '';
+    }
+
+    function showCopied() {
+      document.getElementById('statusNote').textContent = '✓ Copiado — pégalo en WhatsApp para invitar a tu amiga.';
+    }
+
+    function copyLink() {
+      if (!inviteUrl) return;
+      navigator.clipboard?.writeText(inviteUrl).then(showCopied).catch(() => {});
+    }
+
+    function shareLink() {
+      if (!inviteUrl) return;
+      navigator.share({
+        title: 'Tatiana Silva Hair & Beauty',
+        text: 'Únete al programa VIP de Tatiana Silva Hair & Beauty:',
+        url: inviteUrl,
+      }).catch(() => {});
+    }
+  </script>
+</body>
+</html>

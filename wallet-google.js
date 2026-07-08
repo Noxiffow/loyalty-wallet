@@ -52,7 +52,7 @@ function buildTextModules(stamps, vipExpiry) {
 function inviteUrlFor(enrollmentToken) {
   if (!enrollmentToken) return null;
   const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '');
-  return `${baseUrl}/invite/${enrollmentToken}`;
+  return `${baseUrl}/share/${enrollmentToken}`;
 }
 
 function buildLinksModule(inviteUrl) {

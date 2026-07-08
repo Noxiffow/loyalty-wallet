@@ -27,7 +27,7 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
   };
 
   const inviteUrl = enrollmentToken
-    ? `${(process.env.BASE_URL || '').replace(/\/$/, '')}/invite/${enrollmentToken}`
+    ? `${(process.env.BASE_URL || '').replace(/\/$/, '')}/share/${enrollmentToken}`
     : null;
 
   const passJson = {
