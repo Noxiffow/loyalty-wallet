@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <meta name="color-scheme" content="dark">
-  <title>Admin — Tatiana VIP</title>
+  <title>Admin — Tatiana Club</title>
   <link rel="manifest" href="/admin-manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -280,7 +280,7 @@
 <!-- ══ DASHBOARD ══════════════════════════════════════════════════════════ -->
 <div id="dashScreen" class="screen">
   <header>
-    <h1>Tatiana VIP</h1>
+    <h1>Club Tatiana Silva</h1>
     <div class="header-actions">
       <button class="header-btn" onclick="startScan()">Escanear</button>
       <button class="header-btn" onclick="logout()">Salir</button>
@@ -311,7 +311,7 @@
     "></div>
   </div>
   <p style="color:#ccc; font-size:14px; margin-top:20px; text-align:center; padding:0 24px;">
-    Apunta la cámara al QR de la tarjeta VIP
+    Apunta la cámara al QR de la tarjeta Club
   </p>
   <button class="btn btn-ghost btn-sm" onclick="stopScan()" style="margin-top:20px; width:160px; color:#fff;">
     Cancelar
@@ -332,7 +332,7 @@
 
     <div class="vip-expiry" id="vipExpiryBox">
       <div>
-        <div class="label">Validez VIP</div>
+        <div class="label">Validez Club</div>
         <div class="value" id="vipExpiryVal">—</div>
       </div>
       <div class="vip-status-dot" id="vipStatusDot"></div>
@@ -383,7 +383,7 @@
         </div>
         <div style="display:flex; gap:12px;">
           <div class="field" style="flex:1">
-            <label>Caducidad VIP</label>
+            <label>Caducidad Club</label>
             <input type="date" id="editVipExpiry" />
           </div>
           <div class="field" style="flex:0 0 90px">
@@ -460,7 +460,7 @@
     <div class="card" style="margin-bottom:16px">
       <div style="font-size:13px; color:var(--muted); margin-bottom:6px">La clienta referidora</div>
       <div id="referralReferrerName" style="font-weight:600"></div>
-      <div style="font-size:13px; color:var(--muted); margin-top:4px">recibirá 1 sello · La amiga obtiene VIP por 6 meses (0 sellos)</div>
+      <div style="font-size:13px; color:var(--muted); margin-top:4px">recibirá 1 sello · La amiga entra al Club por 6 meses (0 sellos)</div>
     </div>
 
     <div class="field">
@@ -494,7 +494,7 @@
 <div id="newClientScreen" class="screen">
   <header>
     <button class="back-btn" onclick="showScreen('dashScreen')">‹</button>
-    <h1>Nueva clienta VIP</h1>
+    <h1>Nueva clienta del Club</h1>
   </header>
   <div class="content">
     <div class="field">
@@ -511,7 +511,7 @@
     </div>
 
     <button class="btn btn-primary" id="createClientBtn" onclick="createClient()">
-      Crear tarjeta VIP
+      Crear tarjeta Club
     </button>
     <div class="error-msg" id="newClientError"></div>
 
@@ -716,7 +716,7 @@ function showAddStamp(serviceType) {
   const clientName = document.getElementById('clientTitle').textContent;
   document.getElementById('stampClientName').textContent  = clientName;
   document.getElementById('stampServiceType').textContent =
-    serviceType === 'alisado' ? '✨ Alisado (renueva caducidad VIP)' : 'Otro servicio';
+    serviceType === 'alisado' ? '✨ Alisado (renueva caducidad Club)' : 'Otro servicio';
   document.getElementById('stampNotes').value = '';
   document.getElementById('stampError').textContent = '';
   showScreen('stampScreen');
@@ -836,7 +836,7 @@ async function createClient() {
     body: JSON.stringify({ name, phone, email }),
   });
   const data = await res.json();
-  btn.disabled = false; btn.textContent = 'Crear tarjeta VIP';
+  btn.disabled = false; btn.textContent = 'Crear tarjeta Club';
 
   if (!res.ok) { document.getElementById('newClientError').textContent = data.error || 'Error'; return; }
 
@@ -854,7 +854,7 @@ function copyNewClientLink() {
 function shareNewClientLink() {
   if (!state.newClientUrl) return;
   const name = document.getElementById('newClientName').value.trim();
-  const msg  = `Hola ${name}! 💜 Aquí tienes tu tarjeta VIP de Tatiana Silva Hair & Beauty:\n\n${state.newClientUrl}\n\nGuárdala en tu móvil para acumular sellos y disfrutar tus beneficios ✨`;
+  const msg  = `Hola ${name}! 💜 Aquí tienes tu tarjeta del Club de Tatiana Silva Hair & Beauty:\n\n${state.newClientUrl}\n\nGuárdala en tu móvil para acumular sellos y disfrutar tus beneficios ✨`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
 }
 
@@ -867,7 +867,7 @@ function copyEnrollLink() {
 function sendEnrollWhatsApp() {
   const url = document.getElementById('enrollLink').textContent;
   if (!url || url === '—') return;
-  window.open(`https://wa.me/?text=${encodeURIComponent('Aquí tienes tu enlace para guardar tu tarjeta VIP: ' + url)}`);
+  window.open(`https://wa.me/?text=${encodeURIComponent('Aquí tienes tu enlace para guardar tu tarjeta del Club: ' + url)}`);
 }
 function copyInviteLink() {
   const url = document.getElementById('inviteLink').textContent;

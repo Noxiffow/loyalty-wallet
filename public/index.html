@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0f0f1a">
-  <title>Tatiana Silva Hair & Beauty — Tarjeta VIP</title>
+  <title>Tatiana Silva Hair & Beauty — Tarjeta Club</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -65,12 +65,12 @@
       <strong>⋮ o el icono de compartir</strong> arriba y elige <strong>«Abrir en el navegador»</strong> (Safari o Chrome).
     </div>
     <div class="brand">Tatiana Silva</div>
-    <div class="subtitle">Hair & Beauty · Tarjeta VIP</div>
+    <div class="subtitle">Hair & Beauty · Tarjeta Club</div>
 
     <div class="holder-name" id="holderName">Cargando…</div>
 
     <div class="info-box">
-      <strong>Tu tarjeta VIP incluye</strong>
+      <strong>Tu tarjeta Club incluye</strong>
       Precio especial en alisados · Descuento en servicios (excluye productos y suplementos).<br><br>
       Por cada visita acumulas 1 sello. Al llegar a 10 sellos, ¡ganas un premio!
     </div>
@@ -113,7 +113,7 @@
         document.getElementById('holderName').textContent = data.client_name || '—';
       })
       .catch(() => {
-        document.getElementById('holderName').textContent = 'Tarjeta VIP';
+        document.getElementById('holderName').textContent = 'Tarjeta Club';
       });
 
     // Show platform button

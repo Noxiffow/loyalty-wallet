@@ -36,7 +36,7 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
     teamIdentifier:     TEAM_ID(),
     serialNumber:       serial,
     organizationName:   process.env.BUSINESS_NAME || 'Loyalty Card',
-    description:        'Tarjeta VIP de fidelidad',
+    description:        'Tarjeta Club de fidelidad',
     backgroundColor:    `rgb(${hexToRgb(process.env.BRAND_COLOR || '#000000')})`,
     foregroundColor:    expired ? 'rgb(110,110,110)' : 'rgb(255,255,255)',
     labelColor:         expired ? 'rgb(80,80,80)' : 'rgb(180,180,200)',
@@ -54,11 +54,11 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
         { key: 'stamps', label: 'SELLOS',       value: expired ? '—' : `${stamps}/10` },
       ],
       auxiliaryFields: [
-        { key: 'vip',    label: 'VALIDEZ VIP', value: expired ? 'CADUCADA' : vipExpiryDisplay(vipExpiry) },
+        { key: 'vip',    label: 'VALIDEZ CLUB', value: expired ? 'CADUCADA' : vipExpiryDisplay(vipExpiry) },
       ],
       backFields: [
-        { key: 'benefits',    label: 'Beneficios VIP',       value: 'Precio especial en alisados · Descuento en servicios (excluye productos y suplementos).' },
-        { key: 'rules',       label: 'Caducidad',            value: 'La validez VIP se renueva solo con alisados. Caduca estrictamente en la fecha indicada.' },
+        { key: 'benefits',    label: 'Beneficios Club',      value: 'Precio especial en alisados · Descuento en servicios (excluye productos y suplementos).' },
+        { key: 'rules',       label: 'Caducidad',            value: 'La validez del Club se renueva solo con alisados. Caduca estrictamente en la fecha indicada.' },
         { key: 'stamps_info', label: 'Programa de sellos',   value: 'Por cada visita recibes 1 sello.' },
         ...(inviteUrl ? [
           { key: 'invite_info', label: 'Invita y gana',      value: 'Comparte tu enlace personal. Si tu amiga hace su primer alisado, tú ganas 1 sello.' },

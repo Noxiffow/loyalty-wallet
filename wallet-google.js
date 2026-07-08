@@ -33,18 +33,18 @@ function progressImageUrl(stamps) {
 function buildTextModules(stamps, vipExpiry) {
   return [
     { id: 'stamps',     header: 'Sellos',         body: `${stamps} / 10` },
-    { id: 'vip_expiry', header: 'Validez VIP',     body: vipExpiryDisplay(vipExpiry) },
+    { id: 'vip_expiry', header: 'Validez Club',     body: vipExpiryDisplay(vipExpiry) },
     {
       id: 'how', header: 'Cómo conseguir sellos',
-      body: 'Recibes 1 sello por cada servicio realizado en el salón. Los alisados además renuevan tu validez VIP 6 meses.',
+      body: 'Recibes 1 sello por cada servicio realizado en el salón. Los alisados además renuevan tu validez Club 6 meses.',
     },
     {
       id: 'hours', header: 'Horario',
       body: 'Lunes a Viernes: 11:00 – 19:00 · Sábados: 10:00 – 18:00',
     },
     {
-      id: 'rules', header: 'Caducidad VIP',
-      body: 'La validez VIP se renueva con cada alisado. Caduca estrictamente en la fecha indicada.',
+      id: 'rules', header: 'Caducidad Club',
+      body: 'La validez del Club se renueva con cada alisado. Caduca estrictamente en la fecha indicada.',
     },
   ];
 }
@@ -84,7 +84,7 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
     state:   'ACTIVE',
     cardTitle:  { defaultValue: { language: 'es', value: process.env.BUSINESS_NAME || 'Loyalty Card' } },
     header:     { defaultValue: { language: 'es', value: clientName } },
-    subheader:  { defaultValue: { language: 'es', value: 'Tarjeta VIP' } },
+    subheader:  { defaultValue: { language: 'es', value: 'Tarjeta Club' } },
     logo: {
       sourceUri: { uri: `${baseUrl}/pass-images/icon@2x.png` },
       contentDescription: { defaultValue: { language: 'es', value: 'Logo' } },
@@ -153,10 +153,10 @@ async function expireGooglePass(objectId, clientName, stamps, vipExpiry) {
       state:              'ACTIVE',
       hexBackgroundColor: '#4a4a4a',
       header:             { defaultValue: { language: 'es', value: clientName } },
-      subheader:          { defaultValue: { language: 'es', value: 'Tarjeta VIP · Caducada' } },
+      subheader:          { defaultValue: { language: 'es', value: 'Tarjeta Club · Caducada' } },
       textModulesData: [
         { id: 'stamps',     header: 'Sellos conseguidos', body: `${stamps} / 10` },
-        { id: 'expired',    header: 'Estado',             body: 'Esta tarjeta VIP ha caducado.' },
+        { id: 'expired',    header: 'Estado',             body: 'Esta tarjeta Club ha caducado.' },
         { id: 'vip_expiry', header: 'Venció el',          body: vipExpiryDisplay(vipExpiry) },
       ],
       heroImage: {
@@ -177,7 +177,7 @@ async function reactivateGooglePass(objectId, clientName, stamps, vipExpiry, enr
       state:              'ACTIVE',
       hexBackgroundColor: process.env.BRAND_COLOR || '#000000',
       header:             { defaultValue: { language: 'es', value: clientName } },
-      subheader:          { defaultValue: { language: 'es', value: 'Tarjeta VIP' } },
+      subheader:          { defaultValue: { language: 'es', value: 'Tarjeta Club' } },
       textModulesData:    buildTextModules(stamps, vipExpiry),
       linksModuleData:    buildLinksModule(inviteUrlFor(enrollmentToken)),
       heroImage: {

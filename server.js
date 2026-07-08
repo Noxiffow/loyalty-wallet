@@ -70,7 +70,7 @@ async function sendVipReminder(card) {
   await resend.emails.send({
     from:    RESEND_FROM,
     to:      card.client_email,
-    subject: `Tu tarjeta VIP caduca el ${expiryFormatted}`,
+    subject: `Tu tarjeta Club caduca el ${expiryFormatted}`,
     html: `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -81,7 +81,7 @@ async function sendVipReminder(card) {
         <tr>
           <td style="padding:36px 32px 24px;text-align:center;border-bottom:1px solid rgba(201,169,110,0.2)">
             <div style="font-size:22px;font-weight:300;color:#ede5d8;letter-spacing:1px">${process.env.BUSINESS_NAME || 'Loyalty'}</div>
-            <div style="font-size:10px;color:#7a6e60;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Programa VIP</div>
+            <div style="font-size:10px;color:#7a6e60;text-transform:uppercase;letter-spacing:2px;margin-top:4px">Programa Club</div>
           </td>
         </tr>
         <tr>
@@ -90,7 +90,7 @@ async function sendVipReminder(card) {
               Hola, <strong style="font-weight:500">${card.client_name}</strong> 👋
             </p>
             <p style="margin:0 0 16px;font-size:14px;color:#b8a896;line-height:1.7">
-              Tu tarjeta VIP caduca el <strong style="color:#c9a96e">${expiryFormatted}</strong>.
+              Tu tarjeta Club caduca el <strong style="color:#c9a96e">${expiryFormatted}</strong>.
               Recuerda que puedes renovarla haciendo un <strong style="color:#ede5d8">alisado</strong>
               antes de esa fecha — la nueva caducidad se extiende 6 meses desde el día del servicio.
             </p>
@@ -99,14 +99,14 @@ async function sendVipReminder(card) {
             </p>
             <div style="background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.2);padding:16px 20px;margin-bottom:24px">
               <div style="font-size:10px;color:#7a6e60;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Tu estado actual</div>
-              <div style="font-size:14px;color:#ede5d8">${card.stamps} de 10 sellos · VIP hasta ${expiryFormatted}</div>
+              <div style="font-size:14px;color:#ede5d8">${card.stamps} de 10 sellos · Club hasta ${expiryFormatted}</div>
             </div>
           </td>
         </tr>
         <tr>
           <td style="padding:16px 32px 32px;border-top:1px solid rgba(201,169,110,0.1)">
             <p style="margin:0;font-size:11px;color:#4a4038;line-height:1.6;text-align:center">
-              Estás recibiendo este mensaje porque eres cliente VIP de ${process.env.BUSINESS_NAME || 'nuestro negocio'}.
+              Estás recibiendo este mensaje porque eres clienta del Club de ${process.env.BUSINESS_NAME || 'nuestro negocio'}.
             </p>
           </td>
         </tr>
@@ -560,7 +560,7 @@ app.get('/wallet/apple/:token', async (req, res) => {
 
     res.set({
       'Content-Type':        'application/vnd.apple.pkpass',
-      'Content-Disposition': 'attachment; filename="tatiana-vip.pkpass"',
+      'Content-Disposition': 'attachment; filename="tatiana-club.pkpass"',
       'Content-Length':      buffer.length,
     });
     res.send(buffer);
