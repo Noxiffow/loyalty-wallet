@@ -49,8 +49,16 @@ function buildTextModules(stamps, vipExpiry) {
   ];
 }
 
-function buildLinksModule() {
+function inviteUrlFor(enrollmentToken) {
+  if (!enrollmentToken) return null;
+  const baseUrl = (process.env.BASE_URL || '').replace(/\/$/, '');
+  return `${baseUrl}/invite/${enrollmentToken}`;
+}
+
+function buildLinksModule(inviteUrl) {
   const uris = [];
+  if (inviteUrl)
+    uris.push({ id: 'invite', uri: inviteUrl, description: '🎁 Invita y gana — comparte tu enlace' });
   if (process.env.BUSINESS_PHONE)
     uris.push({ id: 'phone',     uri: `tel:${process.env.BUSINESS_PHONE.replace(/\s/g, '')}`,     description: process.env.BUSINESS_PHONE });
   if (process.env.BUSINESS_EMAIL)
@@ -64,7 +72,7 @@ function buildLinksModule() {
   return uris.length ? { uris } : undefined;
 }
 
-async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null) {
+async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null, enrollmentToken = null) {
   const objectId = `${issuerId()}.${uuidv4()}`;
   const auth   = getAuth();
   const client = await auth.getClient();
@@ -91,7 +99,7 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
       alternateText: `ID ${cardId}`,
     },
     textModulesData:  buildTextModules(stamps, vipExpiry),
-    linksModuleData:  buildLinksModule(),
+    linksModuleData:  buildLinksModule(inviteUrlFor(enrollmentToken)),
     hexBackgroundColor: process.env.BRAND_COLOR || '#000000',
   };
 
@@ -99,7 +107,7 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
   return objectId;
 }
 
-async function updateGooglePass(objectId, stamps, vipExpiry) {
+async function updateGooglePass(objectId, stamps, vipExpiry, enrollmentToken = null) {
   const auth   = getAuth();
   const client = await auth.getClient();
 
@@ -108,7 +116,7 @@ async function updateGooglePass(objectId, stamps, vipExpiry) {
     method: 'PATCH',
     data:   {
       textModulesData: buildTextModules(stamps, vipExpiry),
-      linksModuleData: LINKS_MODULE,
+      linksModuleData: buildLinksModule(inviteUrlFor(enrollmentToken)),
       heroImage: {
         sourceUri: { uri: progressImageUrl(stamps) },
         contentDescription: { defaultValue: { language: 'es', value: `Progreso de sellos: ${stamps} de 10` } },
@@ -159,7 +167,7 @@ async function expireGooglePass(objectId, clientName, stamps, vipExpiry) {
   });
 }
 
-async function reactivateGooglePass(objectId, clientName, stamps, vipExpiry) {
+async function reactivateGooglePass(objectId, clientName, stamps, vipExpiry, enrollmentToken = null) {
   const auth   = getAuth();
   const client = await auth.getClient();
   await client.request({
@@ -171,7 +179,7 @@ async function reactivateGooglePass(objectId, clientName, stamps, vipExpiry) {
       header:             { defaultValue: { language: 'es', value: clientName } },
       subheader:          { defaultValue: { language: 'es', value: 'Tarjeta VIP' } },
       textModulesData:    buildTextModules(stamps, vipExpiry),
-      linksModuleData:    LINKS_MODULE,
+      linksModuleData:    buildLinksModule(inviteUrlFor(enrollmentToken)),
       heroImage: {
         sourceUri:          { uri: progressImageUrl(stamps) },
         contentDescription: { defaultValue: { language: 'es', value: `Progreso de sellos: ${stamps} de 10` } },

@@ -20,11 +20,15 @@ function vipExpiryDisplay(dateStr) {
   });
 }
 
-async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired = false) {
+async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired = false, enrollmentToken = null) {
   const readCert = (envB64, filePath) => {
     if (process.env[envB64]) return Buffer.from(process.env[envB64], 'base64');
     return fs.readFileSync(path.resolve(filePath));
   };
+
+  const inviteUrl = enrollmentToken
+    ? `${(process.env.BASE_URL || '').replace(/\/$/, '')}/invite/${enrollmentToken}`
+    : null;
 
   const passJson = {
     formatVersion:      1,
@@ -56,6 +60,10 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
         { key: 'benefits',    label: 'Beneficios VIP',       value: 'Precio especial en alisados · Descuento en servicios (excluye productos y suplementos).' },
         { key: 'rules',       label: 'Caducidad',            value: 'La validez VIP se renueva solo con alisados. Caduca estrictamente en la fecha indicada.' },
         { key: 'stamps_info', label: 'Programa de sellos',   value: 'Por cada visita recibes 1 sello.' },
+        ...(inviteUrl ? [
+          { key: 'invite_info', label: 'Invita y gana',      value: 'Comparte tu enlace personal. Si tu amiga hace su primer alisado, tú ganas 1 sello.' },
+          { key: 'invite_link', label: 'Tu enlace',          value: inviteUrl },
+        ] : []),
         { key: 'contact',     label: 'Contacto',             value: process.env.BUSINESS_PHONE || '' },
       ],
     },
@@ -90,14 +98,14 @@ async function buildPass(cardId, serial, clientName, stamps, vipExpiry, expired 
   return pass.getAsBuffer();
 }
 
-async function createApplePass(cardId, clientName, stamps = 0, vipExpiry = null, expired = false) {
+async function createApplePass(cardId, clientName, stamps = 0, vipExpiry = null, expired = false, enrollmentToken = null) {
   const serial = uuidv4();
-  const buffer = await buildPass(cardId, serial, clientName, stamps, vipExpiry, expired);
+  const buffer = await buildPass(cardId, serial, clientName, stamps, vipExpiry, expired, enrollmentToken);
   return { serial, buffer };
 }
 
-async function updateApplePass(cardId, serial, clientName, stamps, vipExpiry, expired = false) {
-  return buildPass(cardId, serial, clientName, stamps, vipExpiry, expired);
+async function updateApplePass(cardId, serial, clientName, stamps, vipExpiry, expired = false, enrollmentToken = null) {
+  return buildPass(cardId, serial, clientName, stamps, vipExpiry, expired, enrollmentToken);
 }
 
 module.exports = { createApplePass, updateApplePass };

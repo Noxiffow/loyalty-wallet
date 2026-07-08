@@ -141,9 +141,9 @@ async function checkExpiredCards() {
     const cards = q.getExpiredCards.all();
     for (const card of cards) {
       try {
-        if (card.google_object_id) await expireGooglePass(card.google_object_id, card.client_name, card.stamps, card.vip_expiry);
+        if (card.google_object_id) await expireGooglePass(card.google_object_id, card.client_name, card.stamps, card.vip_expiry, card.enrollment_token);
         if (card.apple_serial) {
-          await updateApplePass(card.id, card.apple_serial, card.client_name, card.stamps, card.vip_expiry, true);
+          await updateApplePass(card.id, card.apple_serial, card.client_name, card.stamps, card.vip_expiry, true, card.enrollment_token);
         }
         q.markPassExpired.run(card.id);
         await pushPassUpdate(card.id);
@@ -160,7 +160,7 @@ async function checkExpiredCards() {
 async function pushGoogleUpdate(card) {
   if (!card.google_object_id) return;
   try {
-    await updateGooglePass(card.google_object_id, card.stamps, card.vip_expiry);
+    await updateGooglePass(card.google_object_id, card.stamps, card.vip_expiry, card.enrollment_token);
   } catch (e) {
     console.error('Google Wallet update failed:', e.message);
   }
@@ -209,7 +209,7 @@ app.post('/api/clients', requireAdmin, async (req, res) => {
     // Create Google Wallet pass (best-effort — needs credentials)
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
       try {
-        const objectId = await createGooglePass(card.id, client.name, 0, null);
+        const objectId = await createGooglePass(card.id, client.name, 0, null, card.enrollment_token);
         q.setGoogleObjectId.run(objectId, card.id);
         card.google_object_id = objectId;
       } catch (e) {
@@ -339,7 +339,7 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
 
   if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
     try {
-      const objectId = await createGooglePass(newCard.id, newClient.name, 0, friendVipExpiry);
+      const objectId = await createGooglePass(newCard.id, newClient.name, 0, friendVipExpiry, newCard.enrollment_token);
       q.setGoogleObjectId.run(objectId, newCard.id);
     } catch (e) {
       console.error('Google pass creation for referral failed:', e.message);
@@ -388,9 +388,9 @@ app.patch('/api/cards/:cardId/admin-edit', requireAdmin, async (req, res) => {
   if (updated.google_object_id) {
     try {
       if (isExpired) {
-        await expireGooglePass(updated.google_object_id, updated.client_name, updated.stamps, updated.vip_expiry);
+        await expireGooglePass(updated.google_object_id, updated.client_name, updated.stamps, updated.vip_expiry, updated.enrollment_token);
       } else {
-        await reactivateGooglePass(updated.google_object_id, updated.client_name, updated.stamps, updated.vip_expiry);
+        await reactivateGooglePass(updated.google_object_id, updated.client_name, updated.stamps, updated.vip_expiry, updated.enrollment_token);
       }
     } catch (e) {
       console.error('Google Wallet admin-edit update failed:', e.message);
@@ -449,7 +449,7 @@ app.post('/api/invite/:token', async (req, res) => {
 
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
       try {
-        const objectId = await createGooglePass(newCard.id, newClient.name, 0, initExpiry);
+        const objectId = await createGooglePass(newCard.id, newClient.name, 0, initExpiry, newCard.enrollment_token);
         q.setGoogleObjectId.run(objectId, newCard.id);
       } catch (e) {
         console.error('Google pass creation (invite) failed:', e.message);
@@ -486,7 +486,7 @@ app.post('/api/join', async (req, res) => {
 
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
       try {
-        const objectId = await createGooglePass(card.id, client.name, 0, initExpiry);
+        const objectId = await createGooglePass(card.id, client.name, 0, initExpiry, card.enrollment_token);
         q.setGoogleObjectId.run(objectId, card.id);
       } catch (e) {
         console.error('Google pass creation failed:', e.message);
@@ -522,7 +522,7 @@ app.get('/wallet/google/:token', async (req, res) => {
   try {
     let objectId = card.google_object_id;
     if (!objectId) {
-      objectId = await createGooglePass(card.id, card.client_name, card.stamps, card.vip_expiry);
+      objectId = await createGooglePass(card.id, card.client_name, card.stamps, card.vip_expiry, card.enrollment_token);
       q.setGoogleObjectId.run(objectId, card.id);
     }
     const url = getEnrollmentUrl(objectId);
@@ -543,12 +543,12 @@ app.get('/wallet/apple/:token', async (req, res) => {
 
     const isExpired = card.pass_expired === 1;
     if (!serial) {
-      const result = await createApplePass(card.id, card.client_name, card.stamps, card.vip_expiry, isExpired);
+      const result = await createApplePass(card.id, card.client_name, card.stamps, card.vip_expiry, isExpired, card.enrollment_token);
       serial = result.serial;
       buffer = result.buffer;
       q.setAppleSerial.run(serial, card.id);
     } else {
-      buffer = await updateApplePass(card.id, serial, card.client_name, card.stamps, card.vip_expiry, isExpired);
+      buffer = await updateApplePass(card.id, serial, card.client_name, card.stamps, card.vip_expiry, isExpired, card.enrollment_token);
     }
 
     res.set({
@@ -600,7 +600,7 @@ app.get('/v1/passes/:passTypeId/:serial', async (req, res) => {
   if (!card) return res.status(404).end();
 
   try {
-    const buffer = await updateApplePass(card.id, card.apple_serial, card.client_name, card.stamps, card.vip_expiry, card.pass_expired === 1);
+    const buffer = await updateApplePass(card.id, card.apple_serial, card.client_name, card.stamps, card.vip_expiry, card.pass_expired === 1, card.enrollment_token);
     res.set({
       'Content-Type':     'application/vnd.apple.pkpass',
       'Last-Modified':    new Date(card.updated_at).toUTCString(),
