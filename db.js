@@ -62,13 +62,20 @@ try { db.exec(`ALTER TABLE referrals ADD COLUMN credited     INTEGER NOT NULL DE
 try { db.exec(`ALTER TABLE referrals ADD COLUMN credited_at  TEXT`); } catch {}
 try { db.exec(`ALTER TABLE cards ADD COLUMN reminder_sent_at TEXT`); } catch {}
 try { db.exec(`ALTER TABLE cards ADD COLUMN pass_expired INTEGER NOT NULL DEFAULT 0`); } catch {}
+try { db.exec(`ALTER TABLE clients ADD COLUMN phone_normalized TEXT`); } catch {}
+try { db.exec(`UPDATE clients SET phone_normalized = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'(',''),')',''),'+34',''),'0034','') WHERE phone_normalized IS NULL`); } catch {}
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 const q = {
   // Clients
   createClient: db.prepare(
-    `INSERT INTO clients (name, phone, email) VALUES (?, ?, ?) RETURNING *`
+    `INSERT INTO clients (name, phone, email, phone_normalized) VALUES (?, ?, ?, ?) RETURNING *`
+  ),
+  getClientByNormalizedPhone: db.prepare(
+    `SELECT c.*, ca.id AS card_id, ca.enrollment_token
+     FROM clients c LEFT JOIN cards ca ON ca.client_id = c.id
+     WHERE c.phone_normalized = ? LIMIT 1`
   ),
   searchClients: db.prepare(
     `SELECT c.*, ca.id AS card_id, ca.stamps, ca.prize_pending, ca.vip_expiry, ca.enrollment_token

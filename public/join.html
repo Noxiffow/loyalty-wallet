@@ -237,12 +237,20 @@
           body: JSON.stringify({ name, phone, email }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error');
-
-        enrollToken = data.token;
-        document.getElementById('successName').textContent = `Hola, ${name.split(' ')[0]}`;
-        document.getElementById('formBox').style.display   = 'none';
-        document.getElementById('successBox').style.display = 'block';
+        if (res.status === 409 && data.token) {
+          // Ya existía una tarjeta con ese teléfono — la reutilizamos en vez de bloquear
+          enrollToken = data.token;
+          document.getElementById('successName').textContent = `Hola de nuevo, ${(data.name || name).split(' ')[0]}`;
+          document.getElementById('formBox').style.display   = 'none';
+          document.getElementById('successBox').style.display = 'block';
+        } else if (!res.ok) {
+          throw new Error(data.error || 'Error');
+        } else {
+          enrollToken = data.token;
+          document.getElementById('successName').textContent = `Hola, ${name.split(' ')[0]}`;
+          document.getElementById('formBox').style.display   = 'none';
+          document.getElementById('successBox').style.display = 'block';
+        }
 
         if (isIOS)          document.getElementById('btnApple').style.display  = 'flex';
         else if (isAndroid) document.getElementById('btnGoogle').style.display = 'flex';

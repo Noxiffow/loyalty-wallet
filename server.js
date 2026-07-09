@@ -50,6 +50,9 @@ function isValidPhone(raw) {
 function isValidEmail(raw) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw || '');
 }
+function normalizePhone(raw) {
+  return (raw || '').replace(/[\s\-().]/g, '').replace(/^(\+34|0034)/, '');
+}
 function validateContact(name, phone, email) {
   if (!name?.trim())          return 'Nombre requerido';
   if (!phone?.trim())         return 'Teléfono requerido';
@@ -201,8 +204,17 @@ app.post('/api/clients', requireAdmin, async (req, res) => {
   const validationError = validateContact(name, phone, email);
   if (validationError) return res.status(400).json({ error: validationError });
 
+  const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
+  if (existing) {
+    return res.status(409).json({
+      error: `Ya existe una tarjeta con este teléfono (${existing.name})`,
+      existingClient: { id: existing.id, name: existing.name },
+      enrollmentUrl: existing.enrollment_token ? `${process.env.BASE_URL}/enroll/${existing.enrollment_token}` : null,
+    });
+  }
+
   try {
-    const [client] = q.createClient.all(name.trim(), phone.trim(), email.trim());
+    const [client] = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
     const token    = uuidv4();
     const [card]   = q.createCard.all(client.id, token);
 
@@ -310,6 +322,15 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
   const validationError = validateContact(name, phone, email);
   if (validationError) return res.status(400).json({ error: validationError });
 
+  const existingFriend = q.getClientByNormalizedPhone.get(normalizePhone(phone));
+  if (existingFriend) {
+    return res.status(409).json({
+      error: `Ya existe una tarjeta con este teléfono (${existingFriend.name})`,
+      existingClient: { id: existingFriend.id, name: existingFriend.name },
+      enrollmentUrl: existingFriend.enrollment_token ? `${process.env.BASE_URL}/enroll/${existingFriend.enrollment_token}` : null,
+    });
+  }
+
   // Add stamp to referrer
   const serviceType  = service_type === 'alisado' ? 'alisado' : 'otro';
   const stampsBefore = referrerCard.stamps;
@@ -327,7 +348,7 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
   q.addStampEvent.run(referrerCard.id, serviceType, notes?.trim() || 'Referido', stampsBefore, stampsAfter);
 
   // Create new client + card for friend
-  const [newClient] = q.createClient.all(name.trim(), phone.trim(), email.trim());
+  const [newClient] = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
   const token       = uuidv4();
   const [newCard]   = q.createCard.all(newClient.id, token);
   q.addReferral.run(referrerCard.id, newClient.id, 1); // credited immediately (admin flow)
@@ -372,8 +393,16 @@ app.patch('/api/cards/:cardId/admin-edit', requireAdmin, async (req, res) => {
     if (!trimName)                              return res.status(400).json({ error: 'Nombre requerido' });
     if (trimPhone && !isValidPhone(trimPhone))  return res.status(400).json({ error: 'Teléfono no válido' });
     if (trimEmail && !isValidEmail(trimEmail))  return res.status(400).json({ error: 'Email no válido' });
-    db.prepare('UPDATE clients SET name=?, phone=?, email=? WHERE id=?')
-      .run(trimName, trimPhone, trimEmail || null, card.client_id);
+
+    if (trimPhone) {
+      const dupe = q.getClientByNormalizedPhone.get(normalizePhone(trimPhone));
+      if (dupe && dupe.id !== card.client_id) {
+        return res.status(409).json({ error: `Ya existe otra tarjeta con este teléfono (${dupe.name})` });
+      }
+    }
+
+    db.prepare('UPDATE clients SET name=?, phone=?, email=?, phone_normalized=? WHERE id=?')
+      .run(trimName, trimPhone, trimEmail || null, normalizePhone(trimPhone), card.client_id);
   }
 
   const newStamps = stamps !== undefined ? Math.max(0, Math.min(10, parseInt(stamps, 10) || 0)) : card.stamps;
@@ -445,8 +474,17 @@ app.post('/api/invite/:token', async (req, res) => {
   const validationError = validateContact(name, phone, email);
   if (validationError) return res.status(400).json({ error: validationError });
 
+  const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
+  if (existing) {
+    return res.status(409).json({
+      error: 'Ya tienes una tarjeta con este teléfono',
+      token: existing.enrollment_token || null,
+      name:  existing.name,
+    });
+  }
+
   try {
-    const [newClient]  = q.createClient.all(name.trim(), phone.trim(), email.trim());
+    const [newClient]  = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
     const token        = uuidv4();
     const [newCard]    = q.createCard.all(newClient.id, token);
     const today        = new Date().toISOString().split('T')[0];
@@ -483,8 +521,17 @@ app.post('/api/join', async (req, res) => {
   const validationError = validateContact(name, phone, email);
   if (validationError) return res.status(400).json({ error: validationError });
 
+  const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
+  if (existing) {
+    return res.status(409).json({
+      error: 'Ya tienes una tarjeta con este teléfono',
+      token: existing.enrollment_token || null,
+      name:  existing.name,
+    });
+  }
+
   try {
-    const [client]   = q.createClient.all(name.trim(), phone.trim(), email.trim());
+    const [client]   = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
     const token      = uuidv4();
     const [card]     = q.createCard.all(client.id, token);
     const today      = new Date().toISOString().split('T')[0];
