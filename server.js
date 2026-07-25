@@ -53,6 +53,10 @@ function isValidEmail(raw) {
 function normalizePhone(raw) {
   return (raw || '').replace(/[\s\-().]/g, '').replace(/^(\+34|0034)/, '');
 }
+function titleCase(raw) {
+  return (raw || '').trim().replace(/\s+/g, ' ').toLowerCase()
+    .replace(/(^|[\s'-])\p{L}/gu, (c) => c.toUpperCase());
+}
 function validateContact(name, phone, email) {
   if (!name?.trim())          return 'Nombre requerido';
   if (!phone?.trim())         return 'Teléfono requerido';
@@ -214,7 +218,7 @@ app.post('/api/clients', requireAdmin, async (req, res) => {
   }
 
   try {
-    const [client] = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
+    const [client] = q.createClient.all(titleCase(name), phone.trim(), email.trim(), normalizePhone(phone));
     const token    = uuidv4();
     const [card]   = q.createCard.all(client.id, token);
 
@@ -348,7 +352,7 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
   q.addStampEvent.run(referrerCard.id, serviceType, notes?.trim() || 'Referido', stampsBefore, stampsAfter);
 
   // Create new client + card for friend
-  const [newClient] = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
+  const [newClient] = q.createClient.all(titleCase(name), phone.trim(), email.trim(), normalizePhone(phone));
   const token       = uuidv4();
   const [newCard]   = q.createCard.all(newClient.id, token);
   q.addReferral.run(referrerCard.id, newClient.id, 1); // credited immediately (admin flow)
@@ -387,7 +391,7 @@ app.patch('/api/cards/:cardId/admin-edit', requireAdmin, async (req, res) => {
   const { name, phone, email, vip_expiry, stamps } = req.body;
 
   if (name !== undefined) {
-    const trimName  = (name  || '').trim();
+    const trimName  = titleCase(name);
     const trimPhone = (phone || '').trim();
     const trimEmail = (email || '').trim();
     if (!trimName)                              return res.status(400).json({ error: 'Nombre requerido' });
@@ -484,7 +488,7 @@ app.post('/api/invite/:token', async (req, res) => {
   }
 
   try {
-    const [newClient]  = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
+    const [newClient]  = q.createClient.all(titleCase(name), phone.trim(), email.trim(), normalizePhone(phone));
     const token        = uuidv4();
     const [newCard]    = q.createCard.all(newClient.id, token);
     const today        = new Date().toISOString().split('T')[0];
@@ -531,7 +535,7 @@ app.post('/api/join', async (req, res) => {
   }
 
   try {
-    const [client]   = q.createClient.all(name.trim(), phone.trim(), email.trim(), normalizePhone(phone));
+    const [client]   = q.createClient.all(titleCase(name), phone.trim(), email.trim(), normalizePhone(phone));
     const token      = uuidv4();
     const [card]     = q.createCard.all(client.id, token);
     const today      = new Date().toISOString().split('T')[0];
