@@ -107,24 +107,6 @@ async function createGooglePass(cardId, clientName, stamps = 0, vipExpiry = null
   return objectId;
 }
 
-async function updateGooglePass(objectId, stamps, vipExpiry, enrollmentToken = null) {
-  const auth   = getAuth();
-  const client = await auth.getClient();
-
-  await client.request({
-    url:    `${WALLET_API}/genericObject/${encodeURIComponent(objectId)}`,
-    method: 'PATCH',
-    data:   {
-      textModulesData: buildTextModules(stamps, vipExpiry),
-      linksModuleData: buildLinksModule(inviteUrlFor(enrollmentToken)),
-      heroImage: {
-        sourceUri: { uri: progressImageUrl(stamps) },
-        contentDescription: { defaultValue: { language: 'es', value: `Progreso de sellos: ${stamps} de 10` } },
-      },
-    },
-  });
-}
-
 function getEnrollmentUrl(objectId) {
   const claims = {
     iss:     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -188,4 +170,4 @@ async function reactivateGooglePass(objectId, clientName, stamps, vipExpiry, enr
   });
 }
 
-module.exports = { createGooglePass, updateGooglePass, getEnrollmentUrl, expireGooglePass, reactivateGooglePass };
+module.exports = { createGooglePass, getEnrollmentUrl, expireGooglePass, reactivateGooglePass };

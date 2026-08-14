@@ -123,6 +123,7 @@ const q = {
     `UPDATE cards
      SET stamps = ?, last_alisado = COALESCE(?, last_alisado),
          vip_expiry = COALESCE(?, vip_expiry),
+         pass_expired = CASE WHEN ? IS NOT NULL THEN 0 ELSE pass_expired END,
          prize_pending = ?, updated_at = datetime('now')
      WHERE id = ?`
   ),

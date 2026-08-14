@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const { Resend } = require('resend');
 
 const { db, q }                                = require('./db');
-const { createGooglePass, updateGooglePass, getEnrollmentUrl, expireGooglePass, reactivateGooglePass } = require('./wallet-google');
+const { createGooglePass, getEnrollmentUrl, expireGooglePass, reactivateGooglePass } = require('./wallet-google');
 
 const { createApplePass,  updateApplePass  }   = require('./wallet-apple');
 const { pushPassUpdate }                       = require('./apns');
@@ -167,7 +167,13 @@ async function checkExpiredCards() {
 async function pushGoogleUpdate(card) {
   if (!card.google_object_id) return;
   try {
-    await updateGooglePass(card.google_object_id, card.stamps, card.vip_expiry, card.enrollment_token);
+    // reactivateGooglePass también restaura el color/estado activos — necesario
+    // para que una tarjeta que se acaba de renovar deje de verse "Caducada".
+    if (card.pass_expired === 1) {
+      await expireGooglePass(card.google_object_id, card.client_name, card.stamps, card.vip_expiry, card.enrollment_token);
+    } else {
+      await reactivateGooglePass(card.google_object_id, card.client_name, card.stamps, card.vip_expiry, card.enrollment_token);
+    }
   } catch (e) {
     console.error('Google Wallet update failed:', e.message);
   }
@@ -278,7 +284,7 @@ app.post('/api/cards/:cardId/stamp', requireAdmin, async (req, res) => {
     newVipExpiry = addMonths(lastAlisado, 6);
   }
 
-  q.updateStamps.run(stampsAfter, lastAlisado, newVipExpiry, prizePending, card.id);
+  q.updateStamps.run(stampsAfter, lastAlisado, newVipExpiry, newVipExpiry, prizePending, card.id);
   q.addStampEvent.run(card.id, serviceType, notes, stampsBefore, stampsAfter);
   if (serviceType === 'alisado') q.resetReminder.run(card.id);
 
@@ -291,7 +297,7 @@ app.post('/api/cards/:cardId/stamp', requireAdmin, async (req, res) => {
         const refBefore = refCard.stamps;
         const refAfter  = refBefore >= STAMPS_TO_WIN ? 1 : refBefore + 1;
         const refPrize  = refAfter >= STAMPS_TO_WIN ? 1 : 0;
-        q.updateStamps.run(refAfter, null, null, refPrize, refCard.id);
+        q.updateStamps.run(refAfter, null, null, null, refPrize, refCard.id);
         q.addStampEvent.run(refCard.id, 'alisado', `Sello por invitar a ${card.client_name}`, refBefore, refAfter);
         await pushGoogleUpdate(q.getCardById.get(refCard.id));
       }
@@ -348,7 +354,7 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
     newVipExpiry = addMonths(lastAlisado, 6);
   }
 
-  q.updateStamps.run(stampsAfter, lastAlisado, newVipExpiry, prizePending, referrerCard.id);
+  q.updateStamps.run(stampsAfter, lastAlisado, newVipExpiry, newVipExpiry, prizePending, referrerCard.id);
   q.addStampEvent.run(referrerCard.id, serviceType, notes?.trim() || 'Referido', stampsBefore, stampsAfter);
 
   // Create new client + card for friend
@@ -360,7 +366,7 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
   // New friend: 0 stamps but VIP expiry starts today (6 months window to activate)
   const friendToday     = new Date().toISOString().split('T')[0];
   const friendVipExpiry = addMonths(friendToday, 6);
-  q.updateStamps.run(0, null, friendVipExpiry, 0, newCard.id);
+  q.updateStamps.run(0, null, friendVipExpiry, friendVipExpiry, 0, newCard.id);
 
   if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
     try {
@@ -493,7 +499,7 @@ app.post('/api/invite/:token', async (req, res) => {
     const [newCard]    = q.createCard.all(newClient.id, token);
     const today        = new Date().toISOString().split('T')[0];
     const initExpiry   = addMonths(today, 6);
-    q.updateStamps.run(0, null, initExpiry, 0, newCard.id);
+    q.updateStamps.run(0, null, initExpiry, initExpiry, 0, newCard.id);
     q.addReferral.run(referrer.card_id, newClient.id, 0); // pending — credited when first alisado
 
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
@@ -540,7 +546,7 @@ app.post('/api/join', async (req, res) => {
     const [card]     = q.createCard.all(client.id, token);
     const today      = new Date().toISOString().split('T')[0];
     const initExpiry = addMonths(today, 6);
-    q.updateStamps.run(0, null, initExpiry, 0, card.id);
+    q.updateStamps.run(0, null, initExpiry, initExpiry, 0, card.id);
 
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
       try {
