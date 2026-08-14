@@ -79,6 +79,17 @@
     input:focus { border-color: #c9a96e; }
     input::placeholder { color: #4a4038; }
 
+    .consent-field {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin: 20px 0 4px;
+    }
+    .consent-field input { width: auto; flex-shrink: 0; margin-top: 3px; accent-color: #c9a96e; }
+    .consent-field label {
+      font-size: 12px; color: #7a6e60; line-height: 1.6;
+      text-transform: none; letter-spacing: 0; margin-bottom: 0;
+    }
+    .consent-field a { color: #c9a96e; }
+
     .btn-primary {
       width: 100%; padding: 14px; border: none; border-radius: 2px;
       background: #c9a96e; color: #0d0c0a;
@@ -159,6 +170,15 @@
       <div class="field">
         <label>Email *</label>
         <input type="email" id="emailInput" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+
+      <div class="consent-field">
+        <input type="checkbox" id="consentCheck" />
+        <label for="consentCheck">
+          He leído y acepto la <a href="/privacidad" target="_blank">Política de Privacidad</a>.
+          Autorizo a Tatiana Silva Hair & Beauty a tratar mis datos para gestionar mi tarjeta
+          del Club y enviarme comunicaciones relacionadas (recordatorios, promociones).
+        </label>
       </div>
 
       <button class="btn-primary" id="joinBtn" onclick="joinVip()">
@@ -254,6 +274,11 @@
         errEl.textContent = 'Email no válido';
         errEl.style.display = 'block'; return;
       }
+      const consent = document.getElementById('consentCheck').checked;
+      if (!consent) {
+        errEl.textContent = 'Debes aceptar la política de privacidad para continuar.';
+        errEl.style.display = 'block'; return;
+      }
 
       const btn = document.getElementById('joinBtn');
       btn.disabled = true; btn.textContent = 'Creando tu tarjeta…';
@@ -261,7 +286,7 @@
       try {
         const res  = await fetch(`/api/invite/${inviteToken}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, email }),
+          body: JSON.stringify({ name, phone, email, consent }),
         });
         const data = await res.json();
         if (res.status === 409 && data.token) {

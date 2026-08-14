@@ -73,6 +73,10 @@
 
     /* ── Forms ── */
     .field { margin-bottom: 20px; }
+    .consent-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
+    .consent-field input { width: auto; flex-shrink: 0; margin-top: 3px; accent-color: var(--accent); }
+    .consent-field label { text-transform: none; letter-spacing: 0; font-size: 12px; line-height: 1.6; margin-bottom: 0; color: var(--muted); }
+    .consent-field a { color: var(--accent); }
     label { display: block; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
     input[type=text], input[type=password], input[type=tel], input[type=date], input[type=number], select, textarea {
       width: 100%; padding: 12px 14px;
@@ -294,7 +298,7 @@
     </div>
     <div id="clientList"></div>
   </div>
-  <button class="fab" onclick="showScreen('newClientScreen')" title="Nueva clienta">+</button>
+  <button class="fab" onclick="showNewClient()" title="Nueva clienta">+</button>
 </div>
 
 <!-- ══ QR SCANNER ══════════════════════════════════════════════════════════ -->
@@ -483,6 +487,11 @@
       </select>
     </div>
 
+    <div class="consent-field">
+      <input type="checkbox" id="referralConsent" />
+      <label for="referralConsent">La amiga ha sido informada y acepta la <a href="/privacidad" target="_blank">Política de Privacidad</a></label>
+    </div>
+
     <button class="btn btn-primary" onclick="confirmReferral()">
       ✓ Registrar referido
     </button>
@@ -508,6 +517,11 @@
     <div class="field">
       <label>Email *</label>
       <input type="email" id="newClientEmail" placeholder="email@ejemplo.com" />
+    </div>
+
+    <div class="consent-field">
+      <input type="checkbox" id="newClientConsent" />
+      <label for="newClientConsent">La clienta ha sido informada y acepta la <a href="/privacidad" target="_blank">Política de Privacidad</a></label>
     </div>
 
     <button class="btn btn-primary" id="createClientBtn" onclick="createClient()">
@@ -547,6 +561,16 @@ let state = {
 };
 
 // ── Routing ────────────────────────────────────────────────────────────────
+function showNewClient() {
+  document.getElementById('newClientName').value  = '';
+  document.getElementById('newClientPhone').value = '';
+  document.getElementById('newClientEmail').value = '';
+  document.getElementById('newClientConsent').checked = false;
+  document.getElementById('newClientError').textContent = '';
+  document.getElementById('newClientResult').style.display = 'none';
+  showScreen('newClientScreen');
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -755,6 +779,7 @@ function showReferral() {
   document.getElementById('referralName').value = '';
   document.getElementById('referralPhone').value = '';
   document.getElementById('referralEmail').value = '';
+  document.getElementById('referralConsent').checked = false;
   document.getElementById('referralError').textContent = '';
   showScreen('referralScreen');
 }
@@ -770,13 +795,15 @@ async function confirmReferral() {
   if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
   if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
+  const consent = document.getElementById('referralConsent').checked;
+  if (!consent) { errEl.textContent = 'Debes confirmar que la amiga acepta la política de privacidad'; return; }
 
   const btn = document.querySelector('#referralScreen .btn-primary');
   btn.disabled = true; btn.textContent = 'Registrando…';
 
   const res = await fetch(`/api/cards/${state.currentCardId}/referral`, {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ name, phone, email, service_type: service }),
+    body: JSON.stringify({ name, phone, email, service_type: service, consent }),
   });
   const data = await res.json();
   if (!res.ok) {
@@ -827,13 +854,15 @@ async function createClient() {
   if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
   if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
+  const consent = document.getElementById('newClientConsent').checked;
+  if (!consent) { errEl.textContent = 'Debes confirmar que la clienta acepta la política de privacidad'; return; }
 
   const btn = document.getElementById('createClientBtn');
   btn.disabled = true; btn.textContent = 'Creando…';
 
   const res  = await fetch('/api/clients', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ name, phone, email }),
+    body: JSON.stringify({ name, phone, email, consent }),
   });
   const data = await res.json();
   btn.disabled = false; btn.textContent = 'Crear tarjeta Club';

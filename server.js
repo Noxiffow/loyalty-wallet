@@ -57,12 +57,13 @@ function titleCase(raw) {
   return (raw || '').trim().replace(/\s+/g, ' ').toLowerCase()
     .replace(/(^|[\s'-])\p{L}/gu, (c) => c.toUpperCase());
 }
-function validateContact(name, phone, email) {
+function validateContact(name, phone, email, consent) {
   if (!name?.trim())          return 'Nombre requerido';
   if (!phone?.trim())         return 'Teléfono requerido';
   if (!isValidPhone(phone))   return 'Teléfono no válido';
   if (!email?.trim())         return 'Email requerido';
   if (!isValidEmail(email))   return 'Email no válido';
+  if (!consent)                return 'Debes aceptar la política de privacidad';
   return null;
 }
 
@@ -210,8 +211,8 @@ app.get('/api/clients', requireAdmin, (req, res) => {
 });
 
 app.post('/api/clients', requireAdmin, async (req, res) => {
-  const { name, phone, email } = req.body;
-  const validationError = validateContact(name, phone, email);
+  const { name, phone, email, consent } = req.body;
+  const validationError = validateContact(name, phone, email, consent);
   if (validationError) return res.status(400).json({ error: validationError });
 
   const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
@@ -328,8 +329,8 @@ app.post('/api/cards/:cardId/referral', requireAdmin, async (req, res) => {
   const referrerCard = q.getCardById.get(req.params.cardId);
   if (!referrerCard) return res.status(404).json({ error: 'Tarjeta no encontrada' });
 
-  const { name, phone, email, service_type, notes } = req.body;
-  const validationError = validateContact(name, phone, email);
+  const { name, phone, email, service_type, notes, consent } = req.body;
+  const validationError = validateContact(name, phone, email, consent);
   if (validationError) return res.status(400).json({ error: validationError });
 
   const existingFriend = q.getClientByNormalizedPhone.get(normalizePhone(phone));
@@ -480,8 +481,8 @@ app.post('/api/invite/:token', async (req, res) => {
   const referrer = q.getReferrerByToken.get(req.params.token);
   if (!referrer) return res.status(404).json({ error: 'Enlace no válido' });
 
-  const { name, phone, email } = req.body;
-  const validationError = validateContact(name, phone, email);
+  const { name, phone, email, consent } = req.body;
+  const validationError = validateContact(name, phone, email, consent);
   if (validationError) return res.status(400).json({ error: validationError });
 
   const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
@@ -526,9 +527,13 @@ app.get('/join', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'join.html'));
 });
 
+app.get('/privacidad', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'privacidad.html'));
+});
+
 app.post('/api/join', async (req, res) => {
-  const { name, phone, email } = req.body;
-  const validationError = validateContact(name, phone, email);
+  const { name, phone, email, consent } = req.body;
+  const validationError = validateContact(name, phone, email, consent);
   if (validationError) return res.status(400).json({ error: validationError });
 
   const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));

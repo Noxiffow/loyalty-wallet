@@ -64,13 +64,15 @@ try { db.exec(`ALTER TABLE cards ADD COLUMN reminder_sent_at TEXT`); } catch {}
 try { db.exec(`ALTER TABLE cards ADD COLUMN pass_expired INTEGER NOT NULL DEFAULT 0`); } catch {}
 try { db.exec(`ALTER TABLE clients ADD COLUMN phone_normalized TEXT`); } catch {}
 try { db.exec(`UPDATE clients SET phone_normalized = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'(',''),')',''),'+34',''),'0034','') WHERE phone_normalized IS NULL`); } catch {}
+try { db.exec(`ALTER TABLE clients ADD COLUMN consent_at TEXT`); } catch {}
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 const q = {
   // Clients
   createClient: db.prepare(
-    `INSERT INTO clients (name, phone, email, phone_normalized) VALUES (?, ?, ?, ?) RETURNING *`
+    `INSERT INTO clients (name, phone, email, phone_normalized, consent_at)
+     VALUES (?, ?, ?, ?, datetime('now')) RETURNING *`
   ),
   getClientByNormalizedPhone: db.prepare(
     `SELECT c.*, ca.id AS card_id, ca.enrollment_token
