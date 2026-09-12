@@ -73,6 +73,9 @@
 
     /* ── Forms ── */
     .field { margin-bottom: 20px; }
+    .phone-row { display: flex; gap: 8px; }
+    .phone-row select { flex: 0 0 92px; padding-left: 8px; padding-right: 4px; }
+    .phone-row input { flex: 1; min-width: 0; }
     .consent-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 20px; }
     .consent-field input { width: auto; flex-shrink: 0; margin-top: 3px; accent-color: var(--accent); }
     .consent-field label { text-transform: none; letter-spacing: 0; font-size: 12px; line-height: 1.6; margin-bottom: 0; color: var(--muted); }
@@ -420,7 +423,28 @@
         </div>
         <div class="field">
           <label>Teléfono</label>
-          <input type="tel" id="editPhone" />
+          <div class="phone-row">
+            <select id="editPhonePrefix">
+              <option value="+34" selected>🇪🇸 +34</option>
+              <option value="+351">🇵🇹 +351</option>
+              <option value="+33">🇫🇷 +33</option>
+              <option value="+39">🇮🇹 +39</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+49">🇩🇪 +49</option>
+              <option value="+212">🇲🇦 +212</option>
+              <option value="+40">🇷🇴 +40</option>
+              <option value="+57">🇨🇴 +57</option>
+              <option value="+58">🇻🇪 +58</option>
+              <option value="+54">🇦🇷 +54</option>
+              <option value="+55">🇧🇷 +55</option>
+              <option value="+51">🇵🇪 +51</option>
+              <option value="+593">🇪🇨 +593</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+48">🇵🇱 +48</option>
+            </select>
+            <input type="tel" id="editPhone" placeholder="600 000 000" />
+          </div>
         </div>
         <div class="field">
           <label>Email</label>
@@ -514,7 +538,28 @@
     </div>
     <div class="field">
       <label>Teléfono de la amiga *</label>
-      <input type="tel" id="referralPhone" placeholder="+34 600 000 000" />
+      <div class="phone-row">
+        <select id="referralPhonePrefix">
+          <option value="+34" selected>🇪🇸 +34</option>
+          <option value="+351">🇵🇹 +351</option>
+          <option value="+33">🇫🇷 +33</option>
+          <option value="+39">🇮🇹 +39</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+212">🇲🇦 +212</option>
+          <option value="+40">🇷🇴 +40</option>
+          <option value="+57">🇨🇴 +57</option>
+          <option value="+58">🇻🇪 +58</option>
+          <option value="+54">🇦🇷 +54</option>
+          <option value="+55">🇧🇷 +55</option>
+          <option value="+51">🇵🇪 +51</option>
+          <option value="+593">🇪🇨 +593</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+48">🇵🇱 +48</option>
+        </select>
+        <input type="tel" id="referralPhone" placeholder="600 000 000" />
+      </div>
     </div>
     <div class="field">
       <label>Email de la amiga *</label>
@@ -581,7 +626,28 @@
     </div>
     <div class="field">
       <label>Teléfono</label>
-      <input type="tel" id="newClientPhone" placeholder="+34 600 000 000" />
+      <div class="phone-row">
+        <select id="newClientPhonePrefix">
+          <option value="+34" selected>🇪🇸 +34</option>
+          <option value="+351">🇵🇹 +351</option>
+          <option value="+33">🇫🇷 +33</option>
+          <option value="+39">🇮🇹 +39</option>
+          <option value="+44">🇬🇧 +44</option>
+          <option value="+49">🇩🇪 +49</option>
+          <option value="+212">🇲🇦 +212</option>
+          <option value="+40">🇷🇴 +40</option>
+          <option value="+57">🇨🇴 +57</option>
+          <option value="+58">🇻🇪 +58</option>
+          <option value="+54">🇦🇷 +54</option>
+          <option value="+55">🇧🇷 +55</option>
+          <option value="+51">🇵🇪 +51</option>
+          <option value="+593">🇪🇨 +593</option>
+          <option value="+1">🇺🇸 +1</option>
+          <option value="+86">🇨🇳 +86</option>
+          <option value="+48">🇵🇱 +48</option>
+        </select>
+        <input type="tel" id="newClientPhone" placeholder="600 000 000" />
+      </div>
     </div>
     <div class="field">
       <label>Email *</label>
@@ -636,6 +702,7 @@ let state = {
 // ── Routing ────────────────────────────────────────────────────────────────
 function showNewClient() {
   document.getElementById('newClientName').value  = '';
+  document.getElementById('newClientPhonePrefix').value = '+34';
   document.getElementById('newClientPhone').value = '';
   document.getElementById('newClientEmail').value = '';
   document.getElementById('newClientConsent').checked = false;
@@ -946,6 +1013,7 @@ function showReferral() {
   document.getElementById('referralReferrerName').textContent =
     document.getElementById('clientTitle').textContent;
   document.getElementById('referralName').value = '';
+  document.getElementById('referralPhonePrefix').value = '+34';
   document.getElementById('referralPhone').value = '';
   document.getElementById('referralEmail').value = '';
   document.getElementById('referralConsent').checked = false;
@@ -954,15 +1022,17 @@ function showReferral() {
 }
 
 async function confirmReferral() {
-  const name    = document.getElementById('referralName').value.trim();
-  const phone   = document.getElementById('referralPhone').value.trim();
+  const name       = document.getElementById('referralName').value.trim();
+  const phonePrefix = document.getElementById('referralPhonePrefix').value;
+  const phoneLocal  = document.getElementById('referralPhone').value.trim();
+  const phone       = phonePrefix + phoneLocal.replace(/[\s\-().]/g, '');
   const email   = document.getElementById('referralEmail').value.trim();
   const service = document.getElementById('referralService').value;
   const errEl   = document.getElementById('referralError');
   if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
   if (!hasFullName(name)) { errEl.textContent = 'Escribe nombre y apellido'; return; }
-  if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
-  if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
+  if (!phoneLocal) { errEl.textContent = 'Teléfono requerido'; return; }
+  if (!validatePhone(phoneLocal)) { errEl.textContent = 'Teléfono no válido'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
   if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
   const consent = document.getElementById('referralConsent').checked;
@@ -1006,8 +1076,18 @@ async function awardPrize() {
 
 // ── Phone validation ────────────────────────────────────────────────────────
 function validatePhone(raw) {
-  const clean = raw.replace(/[\s\-().]/g, '');
-  return /^(\+34|0034)?[6789]\d{8}$/.test(clean);
+  const digits = raw.replace(/[\s\-().]/g, '');
+  return /^\d{5,12}$/.test(digits);
+}
+const PHONE_PREFIXES = ['+593','+212','+351','+34','+33','+39','+44','+49','+40','+57','+58','+54','+55','+51','+1','+86','+48'];
+function splitPhone(raw) {
+  const clean = (raw || '').replace(/[\s\-().]/g, '');
+  const sorted = [...PHONE_PREFIXES].sort((a, b) => b.length - a.length);
+  for (const p of sorted) {
+    if (clean.startsWith(p)) return { prefix: p, local: clean.slice(p.length) };
+  }
+  if (/^0034/.test(clean)) return { prefix: '+34', local: clean.slice(4) };
+  return { prefix: '+34', local: clean.replace(/^\+/, '') };
 }
 function validateEmail(raw) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
@@ -1018,14 +1098,16 @@ function hasFullName(raw) {
 
 // ── New Client ──────────────────────────────────────────────────────────────
 async function createClient() {
-  const name  = document.getElementById('newClientName').value.trim();
-  const phone = document.getElementById('newClientPhone').value.trim();
+  const name        = document.getElementById('newClientName').value.trim();
+  const phonePrefix = document.getElementById('newClientPhonePrefix').value;
+  const phoneLocal  = document.getElementById('newClientPhone').value.trim();
+  const phone       = phonePrefix + phoneLocal.replace(/[\s\-().]/g, '');
   const email = document.getElementById('newClientEmail').value.trim();
   const errEl = document.getElementById('newClientError');
   if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
   if (!hasFullName(name)) { errEl.textContent = 'Escribe nombre y apellido'; return; }
-  if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
-  if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
+  if (!phoneLocal) { errEl.textContent = 'Teléfono requerido'; return; }
+  if (!validatePhone(phoneLocal)) { errEl.textContent = 'Teléfono no válido'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
   if (!validateEmail(email)) { errEl.textContent = 'Email no válido'; return; }
   const consent = document.getElementById('newClientConsent').checked;
@@ -1150,8 +1232,10 @@ function toggleEditZone(show) {
   document.getElementById('editToggleBtn').style.display = show ? 'none'  : 'inline-block';
   if (show) {
     const c = state.currentClientData;
-    document.getElementById('editName').value      = c?.name  || '';
-    document.getElementById('editPhone').value     = c?.phone || '';
+    const { prefix, local } = splitPhone(c?.phone || '');
+    document.getElementById('editName').value        = c?.name  || '';
+    document.getElementById('editPhonePrefix').value  = prefix;
+    document.getElementById('editPhone').value        = local;
     document.getElementById('editEmail').value     = c?.email || '';
     document.getElementById('editVipExpiry').value = c?.vip_expiry || '';
     document.getElementById('editStamps').value    = c?.stamps ?? 0;
@@ -1159,12 +1243,14 @@ function toggleEditZone(show) {
 }
 
 async function saveEdit() {
-  const name  = document.getElementById('editName').value.trim();
-  const phone = document.getElementById('editPhone').value.trim();
+  const name        = document.getElementById('editName').value.trim();
+  const phonePrefix = document.getElementById('editPhonePrefix').value;
+  const phoneLocal  = document.getElementById('editPhone').value.trim();
+  const phone       = phoneLocal ? phonePrefix + phoneLocal.replace(/[\s\-().]/g, '') : '';
   const email = document.getElementById('editEmail').value.trim();
-  if (!name)                            { toast('Nombre requerido');                     return; }
-  if (!hasFullName(name))               { toast('Escribe nombre y apellido');            return; }
-  if (phone && !validatePhone(phone))   { toast('Teléfono no válido (formato español)'); return; }
+  if (!name)                              { toast('Nombre requerido');          return; }
+  if (!hasFullName(name))                 { toast('Escribe nombre y apellido'); return; }
+  if (phoneLocal && !validatePhone(phoneLocal)) { toast('Teléfono no válido');  return; }
   if (email && !validateEmail(email))   { toast('Email no válido');                      return; }
 
   const btn = document.querySelector('#editZone .btn-outline-accent');

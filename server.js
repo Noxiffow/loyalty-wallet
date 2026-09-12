@@ -45,7 +45,15 @@ function addMonths(date, n) {
 
 function isValidPhone(raw) {
   const clean = (raw || '').replace(/[\s\-().]/g, '');
-  return /^(\+34|0034)?[6789]\d{8}$/.test(clean);
+  // El prefijo lo elige el propio cliente en un desplegable, así que ya
+  // viene bien formado — para España seguimos validando el formato exacto
+  // (9 dígitos, empieza por 6/7/8/9); para el resto, solo una comprobación
+  // razonable de longitud.
+  if (/^(\+34|0034)/.test(clean)) {
+    const local = clean.replace(/^(\+34|0034)/, '');
+    return /^[6789]\d{8}$/.test(local);
+  }
+  return /^\+\d{7,15}$/.test(clean);
 }
 function isValidEmail(raw) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw || '');
