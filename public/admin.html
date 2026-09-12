@@ -960,6 +960,7 @@ async function confirmReferral() {
   const service = document.getElementById('referralService').value;
   const errEl   = document.getElementById('referralError');
   if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
+  if (!hasFullName(name)) { errEl.textContent = 'Escribe nombre y apellido'; return; }
   if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
   if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
@@ -1011,6 +1012,9 @@ function validatePhone(raw) {
 function validateEmail(raw) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
 }
+function hasFullName(raw) {
+  return (raw || '').trim().split(/\s+/).filter(Boolean).length >= 2;
+}
 
 // ── New Client ──────────────────────────────────────────────────────────────
 async function createClient() {
@@ -1019,6 +1023,7 @@ async function createClient() {
   const email = document.getElementById('newClientEmail').value.trim();
   const errEl = document.getElementById('newClientError');
   if (!name)  { errEl.textContent = 'Nombre requerido'; return; }
+  if (!hasFullName(name)) { errEl.textContent = 'Escribe nombre y apellido'; return; }
   if (!phone) { errEl.textContent = 'Teléfono requerido'; return; }
   if (!validatePhone(phone)) { errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)'; return; }
   if (!email) { errEl.textContent = 'Email requerido'; return; }
@@ -1158,6 +1163,7 @@ async function saveEdit() {
   const phone = document.getElementById('editPhone').value.trim();
   const email = document.getElementById('editEmail').value.trim();
   if (!name)                            { toast('Nombre requerido');                     return; }
+  if (!hasFullName(name))               { toast('Escribe nombre y apellido');            return; }
   if (phone && !validatePhone(phone))   { toast('Teléfono no válido (formato español)'); return; }
   if (email && !validateEmail(email))   { toast('Email no válido');                      return; }
 

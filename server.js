@@ -57,8 +57,12 @@ function titleCase(raw) {
   return (raw || '').trim().replace(/\s+/g, ' ').toLowerCase()
     .replace(/(^|[\s'-])\p{L}/gu, (c) => c.toUpperCase());
 }
+function hasFullName(raw) {
+  return (raw || '').trim().split(/\s+/).filter(Boolean).length >= 2;
+}
 function validateContact(name, phone, email, consent) {
   if (!name?.trim())          return 'Nombre requerido';
+  if (!hasFullName(name))     return 'Introduce nombre y apellido';
   if (!phone?.trim())         return 'Teléfono requerido';
   if (!isValidPhone(phone))   return 'Teléfono no válido';
   if (!email?.trim())         return 'Email requerido';
@@ -407,6 +411,7 @@ app.patch('/api/cards/:cardId/admin-edit', requireAdmin, async (req, res) => {
     const trimPhone = (phone || '').trim();
     const trimEmail = (email || '').trim();
     if (!trimName)                              return res.status(400).json({ error: 'Nombre requerido' });
+    if (!hasFullName(trimName))                 return res.status(400).json({ error: 'Introduce nombre y apellido' });
     if (trimPhone && !isValidPhone(trimPhone))  return res.status(400).json({ error: 'Teléfono no válido' });
     if (trimEmail && !isValidEmail(trimEmail))  return res.status(400).json({ error: 'Email no válido' });
 

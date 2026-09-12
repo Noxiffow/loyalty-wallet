@@ -260,6 +260,10 @@
         errEl.textContent = 'Por favor escribe tu nombre.';
         errEl.style.display = 'block'; return;
       }
+      if (name.trim().split(/\s+/).filter(Boolean).length < 2) {
+        errEl.textContent = 'Escribe tu nombre y apellido.';
+        errEl.style.display = 'block'; return;
+      }
       if (!phone || !validatePhone(phone)) {
         errEl.textContent = 'Teléfono no válido (ej: +34 600 000 000)';
         errEl.style.display = 'block'; return;
