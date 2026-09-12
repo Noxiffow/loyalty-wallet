@@ -276,6 +276,19 @@
       box-shadow: 0 0 8px rgba(93,191,128,0.5);
     }
     .vip-status-dot.expired { background: var(--red); box-shadow: 0 0 8px rgba(201,110,110,0.4); }
+
+    /* ── Desktop: la lista de clientas usa el ancho extra en vez de quedar centrada ── */
+    @media (min-width: 900px) {
+      #dashScreen .content { max-width: 1080px; }
+      #dashScreen .search-bar { max-width: 360px; }
+      #dashScreen #sortSelect { max-width: 220px; }
+      #clientList {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 10px;
+      }
+      #clientList .client-item { margin-bottom: 0; }
+    }
   </style>
 </head>
 <body>
@@ -765,7 +778,11 @@ function renderClientRow(c) {
 }
 
 async function loadClients(append = false) {
-  if (!append) state.listOffset = 0;
+  if (!append) {
+    state.listOffset = 0;
+    document.getElementById('clientList').innerHTML =
+      `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Cargando…</div>`;
+  }
 
   const params = new URLSearchParams({
     q: state.listQuery, status: state.listStatus, sort: state.listSort, offset: state.listOffset,
@@ -790,7 +807,11 @@ async function loadClients(append = false) {
 }
 
 function loadMoreClients() {
-  loadClients(true);
+  const btn = document.getElementById('loadMoreBtn');
+  btn.disabled = true; btn.textContent = 'Cargando…';
+  loadClients(true).then(() => {
+    btn.disabled = false; btn.textContent = 'Cargar más';
+  });
 }
 
 // ── Client Detail ──────────────────────────────────────────────────────────
