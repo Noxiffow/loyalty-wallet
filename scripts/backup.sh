@@ -14,12 +14,12 @@ BACKUP_FILE="$BACKUP_DIR/loyalty-backup.db"
 TMP_FILE="$BACKUP_FILE.tmp"
 LOG_FILE="$BACKUP_DIR/backup.log"
 
+mkdir -p "$BACKUP_DIR"
+
 if [ -z "${BACKUP_TOKEN:-}" ]; then
   echo "$(date -Iseconds) ERROR: falta BACKUP_TOKEN en el entorno" >> "$LOG_FILE"
   exit 1
 fi
-
-mkdir -p "$BACKUP_DIR"
 
 if curl -sf -H "X-Backup-Token: $BACKUP_TOKEN" "$BACKUP_URL" -o "$TMP_FILE"; then
   mv "$TMP_FILE" "$BACKUP_FILE"
