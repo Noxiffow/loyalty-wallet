@@ -2,6 +2,8 @@ require('dotenv').config();
 const express  = require('express');
 const session  = require('express-session');
 const path     = require('path');
+const fs       = require('fs');
+const os       = require('os');
 const { v4: uuidv4 } = require('uuid');
 const { Resend } = require('resend');
 
@@ -485,6 +487,30 @@ app.post('/api/admin/lead-invites', requireAdmin, (req, res) => {
   const token = uuidv4();
   const [invite] = q.createLeadInvite.all(token, label);
   res.json({ ...invite, link: `${process.env.BASE_URL}/join/${token}` });
+});
+
+// ─── Backup (para el cron externo del OMEN, no usa sesión de admin) ──────────
+
+app.get('/api/admin/backup', async (req, res) => {
+  const token = req.headers['x-backup-token'];
+  if (!process.env.BACKUP_TOKEN || token !== process.env.BACKUP_TOKEN) {
+    return res.status(401).json({ error: 'No autorizado' });
+  }
+
+  const tmpPath = path.join(os.tmpdir(), `loyalty-backup-${Date.now()}.db`);
+  try {
+    // db.backup() usa la API de backup de SQLite: copia consistente aunque
+    // haya escrituras en curso (a diferencia de copiar el .db a pelo).
+    await db.backup(tmpPath);
+    res.download(tmpPath, 'loyalty-backup.db', (err) => {
+      fs.unlink(tmpPath, () => {});
+      if (err) console.error('[Backup] Error enviando archivo:', err.message);
+    });
+  } catch (e) {
+    console.error('[Backup] Error generando backup:', e.message);
+    fs.unlink(tmpPath, () => {});
+    res.status(500).json({ error: 'Error generando backup' });
+  }
 });
 
 // ─── Self-service invite ──────────────────────────────────────────────────────
