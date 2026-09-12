@@ -456,6 +456,19 @@ app.delete('/api/clients/:id', requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── API: Lead invites (enlaces de un solo uso para captación) ───────────────
+
+app.get('/api/admin/lead-invites', requireAdmin, (_req, res) => {
+  res.json(q.listLeadInvites.all());
+});
+
+app.post('/api/admin/lead-invites', requireAdmin, (req, res) => {
+  const label = (req.body.label || '').trim() || null;
+  const token = uuidv4();
+  const [invite] = q.createLeadInvite.all(token, label);
+  res.json({ ...invite, link: `${process.env.BASE_URL}/join/${token}` });
+});
+
 // ─── Self-service invite ──────────────────────────────────────────────────────
 
 app.get('/invite/:token', (req, res) => {
@@ -527,14 +540,33 @@ app.get('/join', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'join.html'));
 });
 
+// Self-enrollment con código de invitación de un solo uso (captación de leads)
+app.get('/join/:code', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'join.html'));
+});
+
+app.get('/api/join-code-status/:code', (req, res) => {
+  const invite = q.getLeadInviteByToken.get(req.params.code);
+  if (!invite || invite.used_at) return res.json({ valid: false });
+  res.json({ valid: true });
+});
+
 app.get('/privacidad', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'privacidad.html'));
 });
 
 app.post('/api/join', async (req, res) => {
-  const { name, phone, email, consent } = req.body;
+  const { name, phone, email, consent, code } = req.body;
   const validationError = validateContact(name, phone, email, consent);
   if (validationError) return res.status(400).json({ error: validationError });
+
+  let leadInvite = null;
+  if (code) {
+    leadInvite = q.getLeadInviteByToken.get(code);
+    if (!leadInvite || leadInvite.used_at) {
+      return res.status(410).json({ error: 'Este enlace de invitación ya no está disponible' });
+    }
+  }
 
   const existing = q.getClientByNormalizedPhone.get(normalizePhone(phone));
   if (existing) {
@@ -552,6 +584,8 @@ app.post('/api/join', async (req, res) => {
     const today      = new Date().toISOString().split('T')[0];
     const initExpiry = addMonths(today, 6);
     q.updateStamps.run(0, null, initExpiry, initExpiry, 0, card.id);
+
+    if (leadInvite) q.markLeadInviteUsed.run(client.id, leadInvite.id);
 
     if (process.env.GOOGLE_ISSUER_ID && process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
       try {

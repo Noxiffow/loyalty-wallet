@@ -168,6 +168,8 @@
     }
     .badge-alisado { background: rgba(201,169,110,0.15); color: var(--accent); }
     .badge-otro    { background: rgba(93,191,128,0.12);  color: var(--green); }
+    .badge-pending { background: rgba(93,191,128,0.12);  color: var(--green); }
+    .badge-used    { background: var(--surface);         color: var(--muted); }
 
     /* ── Prize banner ── */
     .prize-banner {
@@ -286,6 +288,7 @@
   <header>
     <h1>Club Tatiana Silva</h1>
     <div class="header-actions">
+      <button class="header-btn" onclick="showLeadInvites()">Invitaciones</button>
       <button class="header-btn" onclick="startScan()">Escanear</button>
       <button class="header-btn" onclick="logout()">Salir</button>
     </div>
@@ -499,6 +502,34 @@
   </div>
 </div>
 
+<!-- ══ LEAD INVITES ═══════════════════════════════════════════════════════ -->
+<div id="leadInvitesScreen" class="screen">
+  <header>
+    <button class="back-btn" onclick="showScreen('dashScreen')">‹</button>
+    <h1>Invitaciones de un solo uso</h1>
+  </header>
+  <div class="content">
+    <div style="font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.6">
+      Genera un enlace para un lead concreto. Se consume en cuanto alguien se registra con él —
+      si lo reenvían, solo sirve para el primero que lo use.
+    </div>
+
+    <div class="field">
+      <label>Etiqueta (para identificarlo tú, opcional)</label>
+      <input type="text" id="leadInviteLabel" placeholder="Ej: Tony - IG" />
+    </div>
+    <button class="btn btn-primary" onclick="generateLeadInvite()">
+      + Generar enlace
+    </button>
+    <div class="error-msg" id="leadInviteError"></div>
+
+    <div style="margin-top:24px">
+      <div class="section-title">Enlaces generados</div>
+      <div id="leadInviteList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ NEW CLIENT ══════════════════════════════════════════════════════════ -->
 <div id="newClientScreen" class="screen">
   <header>
@@ -569,6 +600,66 @@ function showNewClient() {
   document.getElementById('newClientError').textContent = '';
   document.getElementById('newClientResult').style.display = 'none';
   showScreen('newClientScreen');
+}
+
+// ── Lead invites (enlaces de un solo uso) ───────────────────────────────────
+function showLeadInvites() {
+  document.getElementById('leadInviteLabel').value = '';
+  document.getElementById('leadInviteError').textContent = '';
+  showScreen('leadInvitesScreen');
+  loadLeadInvites();
+}
+
+async function loadLeadInvites() {
+  const res = await fetch('/api/admin/lead-invites');
+  if (!res.ok) return;
+  renderLeadInvites(await res.json());
+}
+
+function renderLeadInvites(list) {
+  const el = document.getElementById('leadInviteList');
+  if (!list.length) {
+    el.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:10px 0">Ningún enlace generado aún</div>`;
+    return;
+  }
+  el.innerHTML = list.map(inv => {
+    const link = `${location.origin}/join/${inv.token}`;
+    const status = inv.used_at
+      ? `<span class="badge badge-used">Usado${inv.used_by_name ? ' · ' + esc(inv.used_by_name) : ''}</span>`
+      : `<span class="badge badge-pending">Disponible</span>`;
+    return `
+      <div class="history-item">
+        <div>
+          <div class="history-label">${esc(inv.label || 'Sin etiqueta')}</div>
+          <div class="history-date">${fmtDate(inv.created_at)}</div>
+        </div>
+        ${status}
+      </div>
+      ${!inv.used_at ? `
+      <div class="enroll-link" style="font-size:12px; margin-bottom:16px" onclick="copyLeadInviteLink('${link}')">${link}</div>
+      ` : ''}`;
+  }).join('');
+}
+
+async function generateLeadInvite() {
+  const label = document.getElementById('leadInviteLabel').value.trim();
+  const errEl = document.getElementById('leadInviteError');
+  errEl.textContent = '';
+
+  const res  = await fetch('/api/admin/lead-invites', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ label }),
+  });
+  const data = await res.json();
+  if (!res.ok) { errEl.textContent = data.error || 'Error'; return; }
+
+  document.getElementById('leadInviteLabel').value = '';
+  await loadLeadInvites();
+  navigator.clipboard.writeText(data.link).then(() => toast('✓ Enlace generado y copiado'));
+}
+
+function copyLeadInviteLink(link) {
+  navigator.clipboard.writeText(link).then(() => toast('✓ Enlace copiado'));
 }
 
 function showScreen(id) {

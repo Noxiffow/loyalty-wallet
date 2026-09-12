@@ -55,6 +55,15 @@ db.exec(`
     created_at  TEXT DEFAULT (datetime('now')),
     UNIQUE(device_id, card_id)
   );
+
+  CREATE TABLE IF NOT EXISTS lead_invites (
+    id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+    token              TEXT    UNIQUE NOT NULL,
+    label              TEXT,
+    used_at            TEXT,
+    used_by_client_id  INTEGER REFERENCES clients(id),
+    created_at         TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // ─── Migrations ───────────────────────────────────────────────────────────────
@@ -215,6 +224,22 @@ const q = {
     `SELECT ca.apple_serial FROM cards ca
      JOIN apple_registrations ar ON ar.card_id = ca.id
      WHERE ar.device_id = ? AND datetime(ca.updated_at) > datetime(?)`
+  ),
+
+  // Lead invites (enlaces de un solo uso para captación)
+  createLeadInvite: db.prepare(
+    `INSERT INTO lead_invites (token, label) VALUES (?, ?) RETURNING *`
+  ),
+  getLeadInviteByToken: db.prepare(
+    `SELECT * FROM lead_invites WHERE token = ?`
+  ),
+  markLeadInviteUsed: db.prepare(
+    `UPDATE lead_invites SET used_at = datetime('now'), used_by_client_id = ? WHERE id = ?`
+  ),
+  listLeadInvites: db.prepare(
+    `SELECT li.*, c.name AS used_by_name
+     FROM lead_invites li LEFT JOIN clients c ON c.id = li.used_by_client_id
+     ORDER BY li.created_at DESC LIMIT 50`
   ),
 };
 

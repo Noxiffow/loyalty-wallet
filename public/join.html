@@ -135,6 +135,14 @@
       <div class="brand-divider"></div>
     </div>
 
+    <div id="codeInvalidBox" style="display:none; text-align:center">
+      <div class="success-name">Enlace no disponible</div>
+      <div class="success-msg" style="text-transform:none; letter-spacing:0; font-size:13px">
+        Este enlace de invitación ya se ha utilizado o no es válido.
+        Pide uno nuevo, o regístrate desde <a href="/join" style="color:#c9a96e">el enlace general</a>.
+      </div>
+    </div>
+
     <div id="formBox">
       <div class="perks">
         <div class="perks-title">Beneficios de la tarjeta</div>
@@ -200,8 +208,21 @@
 
   <script>
     let enrollToken = null;
-    const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isAndroid = /Android/.test(navigator.userAgent);
+    const isIOS      = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid  = /Android/.test(navigator.userAgent);
+    const joinCode   = location.pathname.split('/join/')[1] || null;
+
+    if (joinCode) {
+      fetch(`/api/join-code-status/${joinCode}`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.valid) {
+            document.getElementById('formBox').style.display = 'none';
+            document.getElementById('codeInvalidBox').style.display = 'block';
+          }
+        })
+        .catch(() => {});
+    }
 
     function isInAppBrowser() {
       const ua = navigator.userAgent || '';
@@ -259,7 +280,7 @@
       try {
         const res  = await fetch('/api/join', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, email, consent }),
+          body: JSON.stringify({ name, phone, email, consent, code: joinCode }),
         });
         const data = await res.json();
         if (res.status === 409 && data.token) {
