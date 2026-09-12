@@ -219,7 +219,7 @@
     /* ── Search bar ── */
     #dashScreen .content { padding-top: 0; }
     .list-toolbar {
-      position: sticky; top: 56px; z-index: 9;
+      position: sticky; top: var(--header-h, 56px); z-index: 9;
       background: var(--bg); margin: 0 -20px 0; padding: 20px 20px 16px;
     }
     .search-bar { position: relative; margin-bottom: 16px; }
@@ -792,7 +792,21 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
+  if (id === 'dashScreen') syncHeaderHeight();
 }
+
+// La barra de búsqueda/filtros es sticky justo debajo de la cabecera (también
+// sticky) — en vez de fijar su altura a un número de píxeles adivinado (que
+// puede no coincidir en otros dispositivos/tamaños de fuente), la medimos de
+// verdad y la pasamos como variable CSS.
+function syncHeaderHeight() {
+  const header = document.querySelector('#dashScreen header');
+  if (!header) return;
+  document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+}
+window.addEventListener('resize', () => {
+  if (document.getElementById('dashScreen')?.classList.contains('active')) syncHeaderHeight();
+});
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function toast(msg, duration = 2200) {
