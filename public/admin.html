@@ -217,9 +217,10 @@
     .login-sub { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 36px; }
 
     /* ── Search bar ── */
+    #dashScreen .content { padding-top: 0; }
     .list-toolbar {
-      position: sticky; top: 0; z-index: 9;
-      background: var(--bg); margin: -20px -20px 0; padding: 20px 20px 0;
+      position: sticky; top: 56px; z-index: 9;
+      background: var(--bg); margin: 0 -20px 0; padding: 20px 20px 16px;
     }
     .search-bar { position: relative; margin-bottom: 16px; }
     .search-bar input { padding-left: 40px; border-radius: 8px; }
@@ -339,7 +340,7 @@
         <button class="chip" data-status="expiring" onclick="setStatusFilter('expiring')">Caducando pronto</button>
         <button class="chip" data-status="expired" onclick="setStatusFilter('expired')">Caducadas</button>
       </div>
-      <select id="sortSelect" onchange="setSort(this.value)" style="margin-bottom:16px">
+      <select id="sortSelect" onchange="setSort(this.value)">
         <option value="recent">Más recientes</option>
         <option value="name">Alfabético</option>
         <option value="expiry">Por caducidad</option>
