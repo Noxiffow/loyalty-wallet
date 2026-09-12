@@ -208,8 +208,20 @@
     .login-sub { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 36px; }
 
     /* ── Search bar ── */
-    .search-bar { position: relative; margin-bottom: 20px; }
+    .list-toolbar {
+      position: sticky; top: 0; z-index: 9;
+      background: var(--bg); margin: -20px -20px 0; padding: 20px 20px 0;
+    }
+    .search-bar { position: relative; margin-bottom: 16px; }
     .search-bar input { padding-left: 40px; border-radius: 8px; }
+    .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; }
+    .chip {
+      flex-shrink: 0; padding: 9px 14px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text2); font-size: 12px; font-family: inherit; cursor: pointer;
+      transition: all .15s; white-space: nowrap;
+    }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #0a0908; font-weight: 600; }
     .search-icon {
       display: block; position: absolute; left: 14px; top: 50%;
       transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none;
@@ -294,12 +306,25 @@
     </div>
   </header>
   <div class="content">
-    <div class="search-bar">
-      <span class="search-icon">⌕</span>
-      <input type="text" id="searchInput" placeholder="Buscar por nombre o teléfono…"
-             oninput="searchClients(this.value)" />
+    <div class="list-toolbar">
+      <div class="search-bar">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre o teléfono…"
+               oninput="searchClients(this.value)" />
+      </div>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-status="all" onclick="setStatusFilter('all')">Todas</button>
+        <button class="chip" data-status="expiring" onclick="setStatusFilter('expiring')">Caducando pronto</button>
+        <button class="chip" data-status="expired" onclick="setStatusFilter('expired')">Caducadas</button>
+      </div>
+      <select id="sortSelect" onchange="setSort(this.value)" style="margin-bottom:16px">
+        <option value="recent">Más recientes</option>
+        <option value="name">Alfabético</option>
+        <option value="expiry">Por caducidad</option>
+      </select>
     </div>
     <div id="clientList"></div>
+    <button class="btn btn-ghost" id="loadMoreBtn" style="display:none; margin-top:8px" onclick="loadMoreClients()">Cargar más</button>
   </div>
   <button class="fab" onclick="showNewClient()" title="Nueva clienta">+</button>
 </div>
@@ -589,6 +614,10 @@ let state = {
   pendingService:  null,
   enrollmentUrl:   null,
   newClientUrl:    null,
+  listQuery:       '',
+  listStatus:      'all',
+  listSort:        'recent',
+  listOffset:      0,
 };
 
 // ── Routing ────────────────────────────────────────────────────────────────
@@ -685,7 +714,7 @@ async function login() {
   });
   if (res.ok) {
     showScreen('dashScreen');
-    loadClients('');
+    loadClients();
   } else {
     document.getElementById('loginError').textContent = 'Contraseña incorrecta';
   }
@@ -704,36 +733,64 @@ document.getElementById('loginPass').addEventListener('keydown', e => {
 let searchTimer;
 function searchClients(val) {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => loadClients(val), 300);
+  searchTimer = setTimeout(() => { state.listQuery = val; loadClients(); }, 300);
 }
 
-async function loadClients(q = '') {
-  const res   = await fetch(`/api/clients?q=${encodeURIComponent(q)}`);
-  if (res.status === 401) { showScreen('loginScreen'); return; }
-  const list  = await res.json();
-  const el    = document.getElementById('clientList');
+function setStatusFilter(status) {
+  state.listStatus = status;
+  document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.toggle('active', c.dataset.status === status));
+  loadClients();
+}
 
-  if (!list.length) {
+function setSort(sort) {
+  state.listSort = sort;
+  loadClients();
+}
+
+function renderClientRow(c) {
+  const stamps    = c.stamps ?? 0;
+  const prize     = c.prize_pending;
+  const vipActive = c.vip_expiry && new Date(c.vip_expiry) > new Date();
+  const badgeCls  = prize ? 'stamp-badge full' : 'stamp-badge';
+  const badgeTxt  = prize ? 'PREMIO' : `${stamps} / 10`;
+  const vipCls    = vipActive ? 'client-item vip-active' : 'client-item';
+  return `
+    <div class="${vipCls}" onclick="openClient(${c.card_id})">
+      <div>
+        <div class="client-name">${esc(c.name)}</div>
+        <div class="client-meta">${esc(c.phone || '—')}</div>
+      </div>
+      <div class="${badgeCls}">${badgeTxt}</div>
+    </div>`;
+}
+
+async function loadClients(append = false) {
+  if (!append) state.listOffset = 0;
+
+  const params = new URLSearchParams({
+    q: state.listQuery, status: state.listStatus, sort: state.listSort, offset: state.listOffset,
+  });
+  const res  = await fetch(`/api/clients?${params}`);
+  if (res.status === 401) { showScreen('loginScreen'); return; }
+  const data = await res.json();
+  const el   = document.getElementById('clientList');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+  if (!data.clients.length && !append) {
     el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Sin resultados</div>`;
+    loadMoreBtn.style.display = 'none';
     return;
   }
 
-  el.innerHTML = list.map(c => {
-    const stamps    = c.stamps ?? 0;
-    const prize     = c.prize_pending;
-    const vipActive = c.vip_expiry && new Date(c.vip_expiry) > new Date();
-    const badgeCls  = prize ? 'stamp-badge full' : 'stamp-badge';
-    const badgeTxt  = prize ? 'PREMIO' : `${stamps} / 10`;
-    const vipCls    = vipActive ? 'client-item vip-active' : 'client-item';
-    return `
-      <div class="${vipCls}" onclick="openClient(${c.card_id})">
-        <div>
-          <div class="client-name">${esc(c.name)}</div>
-          <div class="client-meta">${esc(c.phone || '—')}</div>
-        </div>
-        <div class="${badgeCls}">${badgeTxt}</div>
-      </div>`;
-  }).join('');
+  const rowsHtml = data.clients.map(renderClientRow).join('');
+  el.innerHTML = append ? el.innerHTML + rowsHtml : rowsHtml;
+
+  state.listOffset = (append ? state.listOffset : 0) + data.clients.length;
+  loadMoreBtn.style.display = state.listOffset < data.total ? 'block' : 'none';
+}
+
+function loadMoreClients() {
+  loadClients(true);
 }
 
 // ── Client Detail ──────────────────────────────────────────────────────────
@@ -1132,7 +1189,7 @@ async function deleteClient() {
 
   toast('✓ Clienta borrada');
   showScreen('dashScreen');
-  loadClients('');
+  loadClients();
 }
 
 // ── Auto-refresh current client ──────────────────────────────────────────────
@@ -1143,15 +1200,14 @@ setInterval(async () => {
     if (res.ok) renderClient(await res.json());
   }
   if (active === 'dashScreen') {
-    const q = document.getElementById('searchInput').value;
-    loadClients(q);
+    loadClients();
   }
 }, 30000);
 
 // ── Init ────────────────────────────────────────────────────────────────────
 // Check if already authenticated
 fetch('/api/clients?q=').then(r => {
-  if (r.ok) { showScreen('dashScreen'); loadClients(''); }
+  if (r.ok) { showScreen('dashScreen'); loadClients(); }
 });
 </script>
 </body>

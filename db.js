@@ -88,12 +88,6 @@ const q = {
      FROM clients c LEFT JOIN cards ca ON ca.client_id = c.id
      WHERE c.phone_normalized = ? LIMIT 1`
   ),
-  searchClients: db.prepare(
-    `SELECT c.*, ca.id AS card_id, ca.stamps, ca.prize_pending, ca.vip_expiry, ca.enrollment_token
-     FROM clients c LEFT JOIN cards ca ON ca.client_id = c.id
-     WHERE c.name LIKE ? OR c.phone LIKE ?
-     ORDER BY c.created_at DESC LIMIT 30`
-  ),
   getClient: db.prepare(
     `SELECT c.*, ca.id AS card_id, ca.stamps, ca.prize_pending, ca.vip_expiry,
             ca.last_alisado, ca.google_object_id, ca.apple_serial,
@@ -243,4 +237,39 @@ const q = {
   ),
 };
 
-module.exports = { db, q };
+// Lista de clientas paginada, con filtro por estado de caducidad y orden —
+// se construye a mano (no es un statement fijo) porque el WHERE/ORDER BY varían;
+// los valores en sí siempre viajan como parámetros ligados, nunca interpolados.
+function listClients(searchTerm, status, sort, limit, offset) {
+  const like = `%${searchTerm || ''}%`;
+  let where = `(c.name LIKE ? OR c.phone LIKE ?)`;
+  const params = [like, like];
+
+  if (status === 'expiring') {
+    where += ` AND ca.vip_expiry IS NOT NULL AND ca.vip_expiry BETWEEN date('now') AND date('now', '+30 days')`;
+  } else if (status === 'expired') {
+    where += ` AND ca.vip_expiry IS NOT NULL AND ca.vip_expiry < date('now')`;
+  }
+
+  let orderBy = 'c.created_at DESC';
+  if (sort === 'name')   orderBy = 'c.name COLLATE NOCASE ASC';
+  if (sort === 'expiry') orderBy = "CASE WHEN ca.vip_expiry IS NULL THEN 1 ELSE 0 END, ca.vip_expiry ASC";
+
+  const rows = db.prepare(`
+    SELECT c.*, ca.id AS card_id, ca.stamps, ca.prize_pending, ca.vip_expiry, ca.enrollment_token
+    FROM clients c LEFT JOIN cards ca ON ca.client_id = c.id
+    WHERE ${where}
+    ORDER BY ${orderBy}
+    LIMIT ? OFFSET ?
+  `).all(...params, limit, offset);
+
+  const { total } = db.prepare(`
+    SELECT COUNT(*) AS total
+    FROM clients c LEFT JOIN cards ca ON ca.client_id = c.id
+    WHERE ${where}
+  `).get(...params);
+
+  return { rows, total };
+}
+
+module.exports = { db, q, listClients };

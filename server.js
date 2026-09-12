@@ -5,7 +5,7 @@ const path     = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { Resend } = require('resend');
 
-const { db, q }                                = require('./db');
+const { db, q, listClients }                   = require('./db');
 const { createGooglePass, getEnrollmentUrl, expireGooglePass, reactivateGooglePass } = require('./wallet-google');
 
 const { createApplePass,  updateApplePass  }   = require('./wallet-apple');
@@ -205,9 +205,14 @@ app.get('/admin', (_req, res) => {
 // ─── API: Clients ─────────────────────────────────────────────────────────────
 
 app.get('/api/clients', requireAdmin, (req, res) => {
-  const q_str = `%${req.query.q || ''}%`;
-  const clients = q.searchClients.all(q_str, q_str);
-  res.json(clients);
+  const search = req.query.q || '';
+  const status = ['expiring', 'expired'].includes(req.query.status) ? req.query.status : 'all';
+  const sort   = ['name', 'expiry'].includes(req.query.sort) ? req.query.sort : 'recent';
+  const limit  = 30;
+  const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+
+  const { rows, total } = listClients(search, status, sort, limit, offset);
+  res.json({ clients: rows, total, offset, limit });
 });
 
 app.post('/api/clients', requireAdmin, async (req, res) => {
