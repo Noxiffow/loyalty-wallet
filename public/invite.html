@@ -79,7 +79,13 @@
     input:focus, select:focus { border-color: #c9a96e; }
     select option { background: #17140f; color: #ede5d8; }
     .phone-row { display: flex; gap: 10px; }
-    .phone-row select { flex: 0 0 88px; }
+    .prefix-select { position: relative; flex: 0 0 118px; }
+    .prefix-select select { padding-left: 30px; }
+    .prefix-flag {
+      position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 13px; border-radius: 2px; pointer-events: none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+    }
     .phone-row input { flex: 1; min-width: 0; }
     input::placeholder { color: #4a4038; }
 
@@ -170,25 +176,28 @@
       <div class="field">
         <label>Teléfono *</label>
         <div class="phone-row">
-          <select id="phonePrefix">
-            <option value="+34" selected>🇪🇸 +34</option>
-            <option value="+351">🇵🇹 +351</option>
-            <option value="+33">🇫🇷 +33</option>
-            <option value="+39">🇮🇹 +39</option>
-            <option value="+44">🇬🇧 +44</option>
-            <option value="+49">🇩🇪 +49</option>
-            <option value="+212">🇲🇦 +212</option>
-            <option value="+40">🇷🇴 +40</option>
-            <option value="+57">🇨🇴 +57</option>
-            <option value="+58">🇻🇪 +58</option>
-            <option value="+54">🇦🇷 +54</option>
-            <option value="+55">🇧🇷 +55</option>
-            <option value="+51">🇵🇪 +51</option>
-            <option value="+593">🇪🇨 +593</option>
-            <option value="+1">🇺🇸 +1</option>
-            <option value="+86">🇨🇳 +86</option>
-            <option value="+48">🇵🇱 +48</option>
-          </select>
+          <div class="prefix-select">
+            <img class="prefix-flag" id="phonePrefixFlag" src="https://flagcdn.com/es.svg" alt="">
+            <select id="phonePrefix" onchange="updatePrefixFlag(this)">
+              <option value="+34" data-cc="es" selected>+34</option>
+              <option value="+351" data-cc="pt">+351</option>
+              <option value="+33" data-cc="fr">+33</option>
+              <option value="+39" data-cc="it">+39</option>
+              <option value="+44" data-cc="gb">+44</option>
+              <option value="+49" data-cc="de">+49</option>
+              <option value="+212" data-cc="ma">+212</option>
+              <option value="+40" data-cc="ro">+40</option>
+              <option value="+57" data-cc="co">+57</option>
+              <option value="+58" data-cc="ve">+58</option>
+              <option value="+54" data-cc="ar">+54</option>
+              <option value="+55" data-cc="br">+55</option>
+              <option value="+51" data-cc="pe">+51</option>
+              <option value="+593" data-cc="ec">+593</option>
+              <option value="+1" data-cc="us">+1</option>
+              <option value="+86" data-cc="cn">+86</option>
+              <option value="+48" data-cc="pl">+48</option>
+            </select>
+          </div>
           <input type="tel" id="phoneInput" placeholder="600 000 000" autocomplete="tel" />
         </div>
       </div>
@@ -272,6 +281,10 @@
         document.getElementById('referrerName').textContent = '—';
       });
 
+    function updatePrefixFlag(sel) {
+      const cc = sel.selectedOptions[0].dataset.cc;
+      document.getElementById(sel.id + 'Flag').src = `https://flagcdn.com/${cc}.svg`;
+    }
     function validatePhone(raw) {
       const digits = raw.replace(/[\s\-().]/g, '');
       return /^\d{5,12}$/.test(digits);
