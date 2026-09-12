@@ -217,7 +217,13 @@
     .login-sub { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 36px; }
 
     /* ── Search bar ── */
-    #dashScreen .content { padding-top: 0; }
+    /* .content tiene overflow-y:auto (para otras pantallas), pero eso lo
+       convierte en "contenedor de scroll" a efectos de position:sticky —
+       aquí la página real la desplaza la ventana, no .content, así que el
+       top de la barra fija acababa midiéndose desde el borde de .content
+       (que ya está a --header-h de la ventana) en vez de desde la ventana,
+       duplicando el desplazamiento. Se desactiva solo en el dashboard. */
+    #dashScreen .content { padding-top: 0; overflow-y: visible; }
     .list-toolbar {
       position: sticky; top: var(--header-h, 56px); z-index: 9;
       background: var(--bg); margin: 0 -20px 0; padding: 20px 20px 16px;
@@ -799,14 +805,26 @@ function showScreen(id) {
 // sticky) — en vez de fijar su altura a un número de píxeles adivinado (que
 // puede no coincidir en otros dispositivos/tamaños de fuente), la medimos de
 // verdad y la pasamos como variable CSS.
+// La barra de búsqueda/filtros necesita saber la altura real de la cabecera
+// para pegarse justo debajo (ver --header-h en el CSS). En vez de intentar
+// adivinar en qué momento recalcularla (login, fuente web cargando tarde,
+// zoom, cambio de tamaño...), un ResizeObserver la vigila permanentemente y
+// actualiza la variable ante CUALQUIER cambio de tamaño, sea cual sea la causa.
 function syncHeaderHeight() {
   const header = document.querySelector('#dashScreen header');
-  if (!header) return;
-  document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  if (header) document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
 }
-window.addEventListener('resize', () => {
-  if (document.getElementById('dashScreen')?.classList.contains('active')) syncHeaderHeight();
-});
+const dashHeaderEl = document.querySelector('#dashScreen header');
+if (dashHeaderEl && window.ResizeObserver) {
+  new ResizeObserver(entries => {
+    for (const entry of entries) {
+      document.documentElement.style.setProperty('--header-h', entry.target.offsetHeight + 'px');
+    }
+  }).observe(dashHeaderEl);
+} else {
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
+}
 
 // ── Toast ──────────────────────────────────────────────────────────────────
 function toast(msg, duration = 2200) {
@@ -880,6 +898,11 @@ async function loadClients(append = false) {
     state.listOffset = 0;
     document.getElementById('clientList').innerHTML =
       `<div style="text-align:center;color:var(--muted);padding:40px 0;font-size:14px">Cargando…</div>`;
+    // Una búsqueda/filtro nuevo puede reducir la lista de golpe (de 85 a 1
+    // resultado) — si venías con scroll bajado, te quedas viendo un hueco
+    // vacío con solo un trocito de tarjeta asomando. Volvemos arriba.
+    window.scrollTo(0, 0);
+    document.querySelector('#dashScreen .content')?.scrollTo(0, 0);
   }
 
   const params = new URLSearchParams({
